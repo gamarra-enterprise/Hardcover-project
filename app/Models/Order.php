@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\URL;
 
 #[Fillable(['user_id', 'tracking_code', 'email', 'status', 'subtotal', 'shipping_cost', 'tax', 'total', 'stock_deducted_at', 'refund_amount', 'shipping_address'])]
 class Order extends Model
@@ -26,6 +27,8 @@ class Order extends Model
     {
         static::creating(function (Order $order) {
             $order->tracking_code ??= static::newTrackingCode();
+            // The column has a default, but the history line written on creation needs the value now.
+            $order->status ??= OrderStatus::PENDING;
         });
 
         // The first line of the history is the creation of the order.
@@ -93,6 +96,15 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Link to follow this order without an account. It is signed, so only whoever was given the
+     * link (at checkout, or after proving code and e-mail) can open it; the code alone is not enough.
+     */
+    public function signedUrl(int $days = 14): string
+    {
+        return URL::temporarySignedRoute('orders.show', now()->addDays($days), ['order' => $this->tracking_code]);
     }
 
     public function statusHistories(): HasMany

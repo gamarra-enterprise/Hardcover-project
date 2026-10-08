@@ -14,7 +14,10 @@
         <div class="drawer-body"><x-shop.cart-lines :summary="$this->summary" /></div>
         <div class="drawer-foot">
             <x-shop.cart-summary :summary="$this->summary" />
-            <a class="btn btn-dark" href="{{ route('cart') }}" style="width: 100%">Ver carrito completo</a>
+            @unless ($this->summary->hasIssues())
+                <a class="btn btn-primary" href="{{ route('checkout') }}" style="width: 100%">Finalizar compra</a>
+            @endunless
+            <a class="btn" href="{{ route('cart') }}" style="width: 100%">Ver carrito completo</a>
         </div>
     @endif
 </div>

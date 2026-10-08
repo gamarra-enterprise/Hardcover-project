@@ -83,6 +83,7 @@
                     <ul class="footer-links">
                         <li><a href="{{ route('about') }}">Nosotros</a></li>
                         <li><a href="{{ route('faq') }}">Preguntas frecuentes</a></li>
+                        <li><a href="{{ route('orders.track') }}">Seguimiento de pedido</a></li>
                     </ul>
                 </div>
                 <div>

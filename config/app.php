@@ -68,6 +68,12 @@ return [
     'timezone' => 'UTC',
 
     /*
+    | Dates are stored in UTC and shown to customers in this zone (Lima has no daylight saving).
+    */
+
+    'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'America/Lima'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------

@@ -249,3 +249,28 @@ body.shop {
 .shop .faq .prose-block { margin: 0 0 1rem; font-size: 1rem; }
 .shop .faq ul, .shop .prose-block ul { padding-left: 1.2rem; list-style: disc; display: grid; gap: 0.3rem; margin: 0.5rem 0; }
 .shop .prose-block p + p { margin-top: 0.8rem; }
+
+/* checkout, order page and tracking */
+.shop .field { display: grid; gap: 0.3rem; }
+.shop .field label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.shop .field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; align-items: start; }
+.shop .card { border: 1px solid var(--line); border-radius: 16px; background: var(--bg); }
+.shop .field-error { color: var(--bad); font-size: 13px; font-weight: 600; }
+.shop .input[aria-invalid='true'] { border-color: var(--bad); }
+.shop .mini-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.shop .mini-lines li { display: flex; justify-content: space-between; gap: 1rem; }
+.shop .totals { display: grid; gap: 8px; margin: 0; }
+.shop .totals > div { display: flex; justify-content: space-between; gap: 1rem; }
+.shop .totals dt, .shop .totals dd { margin: 0; }
+.shop .totals .total { border-top: 1px solid var(--line); padding-top: 10px; font-weight: 700; font-size: 1.15rem; }
+.shop .timeline { display: flex; margin-block: 0.8rem 0.4rem; padding: 0; list-style: none; }
+.shop .timeline li { flex: 1; font-size: 12px; color: var(--muted); text-align: center; position: relative; padding-top: 18px; }
+.shop .timeline li::before { content: ''; position: absolute; top: 4px; left: 0; right: 0; height: 3px; background: var(--line); }
+.shop .timeline li::after { content: ''; position: absolute; top: 0; left: 50%; width: 11px; height: 11px; margin-left: -5.5px; border-radius: 50%; background: var(--bg); border: 2px solid var(--line); }
+.shop .timeline li.on { color: var(--ink); font-weight: 600; }
+.shop .timeline li.on::before { background: var(--accent); }
+.shop .timeline li.on::after { background: var(--accent); border-color: var(--accent); }
+.shop .notice { background: var(--accent-wash); border: 1px solid var(--accent); border-radius: 14px; padding: 12px 16px; margin-top: 18px; font-weight: 600; }
+.shop .status-pill { display: inline-block; padding: 0.15rem 0.7rem; border-radius: 999px; font-size: 12.5px; font-weight: 700; border: 1px solid currentColor; }
+.shop .history { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: 14px; }
+.shop .history li { display: flex; justify-content: space-between; gap: 1rem; }
