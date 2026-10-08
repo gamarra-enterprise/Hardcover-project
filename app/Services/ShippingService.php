@@ -2,44 +2,50 @@
 
 namespace App\Services;
 
-use App\Enums\ShippingStatus;
-use Exception;
+use App\Models\ShippingDistrict;
+use App\Models\ShippingZone;
+use Illuminate\Support\Collection;
 
+/**
+ * Shipping is priced by destination district, not by weight: books in the sheet have no weight.
+ * Orders from the free-shipping amount (config/shop.php) pay nothing.
+ */
 class ShippingService
 {
-    public function calculateShippingCost(array $address, array $items): float
+    /**
+     * Price to deliver an order of $subtotal (IGV included) to the district with this ubigeo,
+     * or null when the shop does not deliver there.
+     */
+    public function quote(string $ubigeo, string $subtotal): ?ShippingQuote
     {
-        // TODO: Implement shipping cost calculation
-        throw new Exception('Shipping cost calculation not implemented');
+        $district = ShippingDistrict::with('zone')
+            ->where('ubigeo', $ubigeo)
+            ->where('is_active', true)
+            ->whereHas('zone', fn ($q) => $q->where('is_active', true))
+            ->first();
+
+        if (! $district) {
+            return null;
+        }
+
+        $free = (float) $subtotal >= (float) config('shop.free_shipping_from');
+
+        return new ShippingQuote($district, (string) $district->cost, $free ? '0.00' : (string) $district->cost, $free);
     }
 
-    public function createShipment(array $data): array
+    /**
+     * Districts the shop delivers to, grouped by zone, for the checkout selector.
+     *
+     * @return Collection<int, ShippingZone>
+     */
+    public function zonesWithDistricts(): Collection
     {
-        // TODO: Implement shipment creation with carrier
-        throw new Exception('Shipment creation not implemented');
-    }
-
-    public function trackShipment(string $trackingNumber): array
-    {
-        // TODO: Implement shipment tracking
-        throw new Exception('Shipment tracking not implemented');
-    }
-
-    public function getShippingStatus(string $shipmentId): ShippingStatus
-    {
-        // TODO: Implement shipping status retrieval
-        throw new Exception('Shipping status retrieval not implemented');
-    }
-
-    public function generateLabel(array $shipmentData): string
-    {
-        // TODO: Implement label generation
-        throw new Exception('Label generation not implemented');
-    }
-
-    public function schedulePickup(array $data): array
-    {
-        // TODO: Implement pickup scheduling
-        throw new Exception('Pickup scheduling not implemented');
+        return ShippingZone::query()
+            ->where('is_active', true)
+            ->with(['districts' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
+            ->orderBy('position')
+            ->get()
+            ->filter(fn (ShippingZone $zone) => $zone->districts->isNotEmpty())
+            ->values();
     }
 }

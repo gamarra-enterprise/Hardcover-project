@@ -19,6 +19,7 @@ class OrderFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
+            'email' => null,
             'status' => OrderStatus::PENDING,
             'shipping_address' => Address::factory()->make()->toSnapshot(),
             ...Order::totalsFor('0', '0'),

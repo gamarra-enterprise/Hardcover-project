@@ -235,3 +235,17 @@ body.shop {
 .shop .cart-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 40px; margin-top: 24px; align-items: start; }
 @media (max-width: 860px) { .shop .cart-layout { grid-template-columns: 1fr; gap: 24px; } }
 @media (prefers-reduced-motion: reduce) { .shop .drawer-enter, .shop .free-bar i { transition: none; } }
+
+/* footer links and FAQ */
+.shop .footer-links { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.35rem; }
+.shop .footer-links a { text-decoration: none; }
+.shop .footer-links a:hover { text-decoration: underline; }
+.shop .faq { margin-top: 1.6rem; border-top: 1px solid var(--line); }
+.shop .faq details { border-bottom: 1px solid var(--line); padding: 0.2rem 0; }
+.shop .faq summary { cursor: pointer; font-weight: 600; font-size: 1.1rem; padding: 1rem 0; list-style: none; display: flex; justify-content: space-between; gap: 1rem; }
+.shop .faq summary::-webkit-details-marker { display: none; }
+.shop .faq summary::after { content: '+'; font-size: 1.4rem; line-height: 1; color: var(--accent-deep); }
+.shop .faq details[open] summary::after { content: '−'; }
+.shop .faq .prose-block { margin: 0 0 1rem; font-size: 1rem; }
+.shop .faq ul, .shop .prose-block ul { padding-left: 1.2rem; list-style: disc; display: grid; gap: 0.3rem; margin: 0.5rem 0; }
+.shop .prose-block p + p { margin-top: 0.8rem; }

@@ -6,6 +6,8 @@ use App\Models\Address;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ShippingDistrict;
+use App\Models\ShippingZone;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
@@ -121,5 +123,22 @@ class RoleAccessTest extends TestCase
         $this->assertTrue($super->can('update', $customer));
         $this->assertTrue($super->can('changeRole', $customer));
         $this->assertTrue($super->can('delete', Order::factory()->create()));
+    }
+
+    public function test_the_administrator_manages_shipping_zones_and_districts_but_customers_do_not(): void
+    {
+        $zone = ShippingZone::factory()->create();
+        $district = ShippingDistrict::factory()->for($zone, 'zone')->create();
+
+        foreach ([$zone, $district] as $model) {
+            $this->assertTrue($this->actor('admin')->can('update', $model));
+            $this->assertTrue($this->actor('admin')->can('delete', $model));
+            $this->assertTrue($this->actor('super_admin')->can('update', $model));
+            $this->assertFalse($this->actor('customer')->can('update', $model));
+            $this->assertFalse($this->actor('customer')->can('viewAny', $model::class));
+        }
+
+        $this->assertTrue($this->actor('admin')->can('create', ShippingDistrict::class));
+        $this->assertFalse($this->actor('customer')->can('create', ShippingDistrict::class));
     }
 }

@@ -66,7 +66,7 @@
 
         <div class="wrap" style="margin-top: 80px">
             <div class="trust">
-                @foreach ([['shield', 'Pagos seguros'], ['truck', 'Envíos a todo el Perú'], ['book', 'Recojo en tienda'], ['gift', 'Envoltorio de regalo'], ['heart', 'Librería independiente']] as [$icon, $text])
+                @foreach ([['shield', 'Pagos seguros'], ['truck', 'Envíos con seguimiento'], ['book', 'Recojo en tienda'], ['gift', 'Envoltorio de regalo'], ['heart', 'Librería independiente']] as [$icon, $text])
                     <div><x-shop.icon :name="$icon" size="22" /><span>{{ $text }}</span></div>
                 @endforeach
             </div>
@@ -76,7 +76,14 @@
             <div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; padding-block: 44px">
                 <div>
                     <a class="logo" href="{{ route('home') }}">hardcover<small>bookery</small></a>
-                    <p class="muted" style="margin-top: .75rem; max-width: 30ch">Libros, papelería y pequeños objetos para lectores. Envíos a todo el Perú.</p>
+                    <p class="muted" style="margin-top: .75rem; max-width: 30ch">Libros, papelería y pequeños objetos para lectores. Envíos con seguimiento.</p>
+                </div>
+                <div>
+                    <div class="label">Ayuda</div>
+                    <ul class="footer-links">
+                        <li><a href="{{ route('about') }}">Nosotros</a></li>
+                        <li><a href="{{ route('faq') }}">Preguntas frecuentes</a></li>
+                    </ul>
                 </div>
                 <div>
                     <div class="label">Síguenos</div>

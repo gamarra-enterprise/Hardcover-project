@@ -26,6 +26,12 @@ class OrderPolicy
         return $user->isStaff();
     }
 
+    /** The customer cancels their own order while its status allows it; staff can cancel while it has not shipped. */
+    public function cancel(User $user, Order $order): bool
+    {
+        return $order->status->customerCanCancel() && ($user->isStaff() || $order->user_id === $user->id);
+    }
+
     public function delete(User $user, Order $order): bool
     {
         return false;
