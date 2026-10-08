@@ -143,20 +143,47 @@ Origen: el informe de requerimientos de AxisLab (venta de productos impresos en 
 - **Ver el pedido** (`/pedido/{código}`): es privado, porque muestra nombre y dirección. Se abre con el enlace firmado que se entrega al confirmar el pedido (vale 14 días), o con la sesión del dueño o del personal. El código solo no basta y cualquier otro intento responde 404, para que no se puedan adivinar pedidos.
 - **Seguimiento sin cuenta** (`/seguimiento`): código + correo del pedido; si cualquiera de los dos falla, la respuesta es la misma, con un límite de 6 intentos por minuto.
 - **Horas**: se guardan en UTC y se muestran en hora de Lima (`APP_DISPLAY_TIMEZONE`).
-- **Pendiente**: la página del pedido avisa que el pago en línea llegará pronto. Mientras no esté el paso de pagos, un pedido creado queda pendiente.
+- **Pago**: la página del pedido pendiente trae el botón «Pagar» (ver «Pagos»).
+
+## Pagos
+
+Pasarela principal: **Mercado Pago** (Checkout Pro). El cliente paga en una página de Mercado Pago, donde aparecen los medios que estén activados en la cuenta del negocio (tarjetas Visa y otras y, si la cuenta lo tiene habilitado, Yape), y vuelve a la tienda. Stripe queda fuera del plan por ahora. Código en `app/Payments` (contrato `PaymentGateway`, `MercadoPagoGateway`, `FakeGateway`) y `PaymentService`.
+
+**Flujo.** Pedido «Pendiente de pago» → botón «Pagar» (`POST /pedido/{código}/pagar`, con dirección firmada, así que solo lo usa quien tiene el enlace del pedido o su dueño) → página de la pasarela → vuelta a `/pago/retorno/…` → página del pedido. Antes de abrir el pago se comprueba que los productos sigan disponibles, para no cobrar algo que ya no hay.
+
+**La pasarela es la fuente de verdad.** Un pago se procesa con lo que responde la API de Mercado Pago al consultarla, nunca con lo que dice una notificación o el navegador. La notificación (`POST /webhooks/mercadopago`, sin CSRF) solo avisa «el pago X cambió»; se verifica su firma `x-signature` con el secreto del webhook (sin secreto configurado no se acepta ninguna) y luego se consulta el pago. Al volver el cliente se consulta también, así que el flujo funciona aunque la notificación no llegue. Procesar dos veces el mismo pago no cambia nada.
+
+**Reglas al confirmarse un pago aprobado**
+- El pedido pasa a «Confirmado» y **recién ahí se descuenta el stock**.
+- **Última unidad: se la lleva quien pague primero.** Si al confirmar ya no alcanza el stock (otra persona pagó antes), el pedido se cancela con el motivo «Sin stock al confirmar el pago», se le devuelve todo lo pagado y se le avisa por correo. No importa quién hizo el pedido primero.
+- Un segundo pago del mismo pedido, un pago que llega con el pedido ya cancelado, o un pago por un monto distinto al del pedido se reembolsan automáticamente.
+- Un pago rechazado deja el pedido pendiente y el cliente puede intentarlo otra vez.
+
+**Reembolsos.** Cancelar un pedido pagado devuelve el dinero por la pasarela y el pedido pasa a «Reembolsado». Si la pasarela falla, el pedido queda cancelado con el reembolso pendiente y `payments:retry-refunds` (programado cada hora) lo reintenta; para que corra, el servidor necesita el cron de Laravel (`* * * * * php artisan schedule:run`). La petición de reembolso lleva una llave de idempotencia, así que repetirla no devuelve dos veces.
+
+**Pasarela de prueba local.** Sin credenciales, `PAYMENT_GATEWAY=fake` (el valor del `.env` de desarrollo) manda al cliente a una página local donde se aprueba o rechaza el pago. Sirve para recorrer todo el flujo. Con `PAYMENT_GATEWAY=fake` la aplicación se niega a arrancar en producción.
+
+**Conectar Mercado Pago de verdad** (pendiente; el código se probó con respuestas simuladas, no contra el servicio real):
+1. En Mercado Pago Developers, crear una aplicación y copiar el Access Token (para pruebas, el que empieza con `TEST-`) en `MERCADOPAGO_ACCESS_TOKEN`.
+2. Configurar el webhook de pagos hacia `https://tu-dominio/webhooks/mercadopago` y copiar su clave secreta en `MERCADOPAGO_WEBHOOK_SECRET`.
+3. Poner `PAYMENT_GATEWAY=mercadopago` y `APP_URL` con la dirección pública y https. En desarrollo hace falta un túnel (por ejemplo ngrok o cloudflared) para que Mercado Pago alcance el webhook y las direcciones de retorno.
+4. Verificar con una compra de prueba: que la preferencia se cree, que vuelva a la tienda, que la notificación llegue y se acepte su firma, que Yape aparezca si se espera, y que un reembolso funcione.
+
+**Pendiente de pagos**: transferencia bancaria manual (el cliente transfiere y el administrador confirma el pago desde el panel, paso 9), a decidir.
 
 ## Siguiente
 
-1. **Pagos** (Stripe y Mercado Pago, evaluar Yape y Plin): al confirmarse el pago, confirmar el pedido y descontar el stock; decidir qué hacer si `InsufficientStock`; devolver el dinero de las cancelaciones.
-2. **Cuenta del cliente**: «Mis pedidos» con la línea de tiempo y el botón de cancelar; direcciones.
-3. **Panel de administración**: productos y categorías (agregar, editar, ocultar), pedidos con cambio de estado, distritos y tarifas de envío, exportación del catálogo, resumen de ventas.
-4. **Panel de super admin**: usuarios y roles, pasarelas, respaldos, registro de actividad.
-5. Correos, accesibilidad, pruebas de carga y despliegue.
+1. **Cuenta del cliente**: «Mis pedidos» con la línea de tiempo y el botón de cancelar; direcciones.
+2. **Panel de administración**: productos y categorías (agregar, editar, ocultar), pedidos con cambio de estado, distritos y tarifas de envío, confirmación de pagos por transferencia, exportación del catálogo, resumen de ventas.
+3. **Panel de super admin**: usuarios y roles, pasarelas, respaldos, registro de actividad.
+4. Correos, accesibilidad, pruebas de carga y despliegue.
 
 ## Decisiones abiertas
 
 - **Alcance del envío**: decidido, por ahora solo Lima Metropolitana y Lima Provincia; las otras regiones salen como «Próximamente». Cuando se abran más, hay que definir zonas, tarifas y un selector que no se limite a Lima (hoy el estado guardado en la dirección es siempre «Lima»).
 - **Ubigeos de Lima Provincia**: cotejarlos con el archivo oficial del INEI.
+- **Credenciales de Mercado Pago**: sin ellas la integración real no se ha podido probar. Hay que crear la aplicación, obtener el token de prueba y el secreto del webhook, y recorrer la lista de «Conectar Mercado Pago de verdad».
+- **Transferencia bancaria manual** como segundo medio de pago.
 - **WhatsApp**: pospuesto. Al retomarlo falta el número del negocio y decidir dónde se muestra.
 - Verificación de correo: `User` no implementa `MustVerifyEmail`, así que el middleware `verified` hoy no bloquea a nadie. Activarla afecta a todos los clientes.
 - Logo y colores reales de la marca (hoy el logo es solo texto).
