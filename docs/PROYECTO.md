@@ -6,9 +6,11 @@ Tienda en línea de libros y productos afines (separadores, llaveros, figuras). 
 
 | Perfil | Rol | Puede |
 |---|---|---|
-| Cliente | `customer` | Comprar, ver sus pedidos y direcciones |
-| Administrador (ventas) | `admin` | Lo anterior, más pedidos, productos, stock y reportes |
-| Super administrador | `super_admin` | Todo, más usuarios y roles, pasarelas, tarifas de envío y actividad |
+| Cliente | `customer` | Navegar el sitio, manejar su carrito, comprar y ver solo sus pedidos y direcciones |
+| Administrador | `admin` | Gestionar productos (alta, edición, precios, stock), categorías y pedidos, y ver reportes. No ve usuarios ni roles |
+| Super administrador | `super_admin` | Control total: todo lo anterior, más las cuentas y roles de todos los usuarios, pasarelas, tarifas de envío y actividad |
+
+Acceso: middleware `role:` (`admin` o `super_admin`; el super admin siempre pasa), `Gate::before` que da todos los permisos al super admin, y policies en `app/Policies`. Paneles en `/admin` y `/super`; `/dashboard` redirige según el rol.
 
 ## Stack
 
@@ -62,11 +64,11 @@ Prototipo navegable en [`prototype/`](../prototype/README.md): abre `prototype/i
 
 ## Siguiente
 
-1. Acceso por roles: Breeze, middleware y policies.
-2. Pasar el prototipo a Blade y Livewire por partes: layout, inicio, catálogo, ficha, carrito, checkout y paneles.
-3. Pasarelas Stripe y Mercado Pago.
+1. Pasar el prototipo a Blade y Livewire por partes: layout, inicio, catálogo, ficha, carrito, checkout y paneles.
+2. Pasarelas Stripe y Mercado Pago.
 
 ## Decisiones abiertas
 
+- Verificación de correo: `User` no implementa `MustVerifyEmail`, así que el middleware `verified` hoy no bloquea a nadie. Activarla afecta a todos los clientes.
 - Logo y colores reales de la marca (hoy el logo es solo texto).
 - Políticas reales de envío, devoluciones y preguntas frecuentes (hoy son de ejemplo).
