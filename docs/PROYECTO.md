@@ -189,7 +189,7 @@ Pruebas del navegador: `npm run test:js` ejecuta el `card-form.js` real en un DO
 
 ## Siguiente
 
-1. **Cuenta del cliente**: «Mis pedidos» con la línea de tiempo y el botón de cancelar; direcciones.
+1. **Cuenta del cliente**: «Mis pedidos» hecho (`/cuenta/pedidos`, lista, detalle con línea de tiempo y botón «Cancelar pedido»; `/dashboard` redirige ahí a los clientes). Falta: direcciones.
 2. **Panel de administración**: productos y categorías (agregar, editar, ocultar), pedidos con cambio de estado, distritos y tarifas de envío, confirmación de pagos por transferencia, exportación del catálogo, resumen de ventas.
 3. **Panel de super admin**: usuarios y roles, pasarelas, respaldos, registro de actividad.
 4. Correos, accesibilidad, pruebas de carga y despliegue.

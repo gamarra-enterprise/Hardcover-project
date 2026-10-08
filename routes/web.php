@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountOrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
@@ -38,6 +39,11 @@ Route::get('producto/{product:slug}', [ProductController::class, 'show'])->name(
 Route::get('dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('cuenta/pedidos', [AccountOrderController::class, 'index'])->name('account.orders');
+    Route::post('pedido/{order:tracking_code}/cancelar', [AccountOrderController::class, 'cancel'])->name('orders.cancel');
+});
 
 Route::view('profile', 'profile')
     ->middleware(['auth'])

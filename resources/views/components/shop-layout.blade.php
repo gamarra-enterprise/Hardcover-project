@@ -39,7 +39,7 @@
                             @if (auth()->user()->role === \App\Enums\UserRole::SUPER_ADMIN)
                                 <a href="{{ route('super.index') }}">Super admin</a>
                             @endif
-                            <a class="btn btn-sm" href="{{ route('dashboard') }}" aria-label="Mi cuenta"><x-shop.icon name="user" /></a>
+                            <a class="btn btn-sm" href="{{ route('account.orders') }}" aria-label="Mis pedidos"><x-shop.icon name="user" /></a>
                         @endguest
                         <button type="button" class="btn btn-sm cart-btn" x-data x-on:click="$dispatch('cart-open')" aria-label="Abrir carrito">
                             <x-shop.icon name="cart" /><livewire:cart.cart-badge />

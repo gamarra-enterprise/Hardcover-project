@@ -57,7 +57,7 @@ class RoleAccessTest extends TestCase
 
     public function test_dashboard_sends_each_role_to_its_place(): void
     {
-        $this->actingAs($this->actor('customer'))->get('/dashboard')->assertOk();
+        $this->actingAs($this->actor('customer'))->get('/dashboard')->assertRedirect(route('account.orders'));
         $this->actingAs($this->actor('admin'))->get('/dashboard')->assertRedirect('/admin');
         $this->actingAs($this->actor('super_admin'))->get('/dashboard')->assertRedirect('/super');
     }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -12,7 +11,7 @@ use Illuminate\Http\Request;
  */
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): RedirectResponse|View
+    public function __invoke(Request $request): RedirectResponse
     {
         $user = $request->user();
 
@@ -20,6 +19,6 @@ class DashboardController extends Controller
             return redirect()->route('super.index');
         }
 
-        return $user->isStaff() ? redirect()->route('admin.index') : view('dashboard');
+        return $user->isStaff() ? redirect()->route('admin.index') : redirect()->route('account.orders');
     }
 }

@@ -57,6 +57,15 @@
             <div class="notice" role="status">Pedido cancelado. Te devolveremos {{ Money::format($order->refund_amount) }}.</div>
         @endif
 
+        @auth
+            @can('cancel', $order)
+                <form method="POST" action="{{ route('orders.cancel', $order) }}" onsubmit="return confirm('¿Cancelar este pedido? Si ya pagaste, te devolveremos el dinero.')" style="margin-top: 14px">
+                    @csrf
+                    <button type="submit" class="btn">Cancelar pedido</button>
+                </form>
+            @endcan
+        @endauth
+
         <div class="cart-layout">
             <div style="display: grid; gap: 28px">
                 <section class="card" style="padding: 22px" aria-labelledby="items-title">
