@@ -4,6 +4,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\Payments\FakeGatewayController;
+use App\Http\Controllers\Payments\PayController;
+use App\Http\Controllers\Payments\ReturnController;
+use App\Http\Controllers\Payments\WebhookController;
 use App\Http\Controllers\ProductController;
 use App\Livewire\Cart\CartPage;
 use App\Livewire\Checkout\Checkout;
@@ -19,6 +23,13 @@ Route::get('carrito', CartPage::class)->name('cart');
 Route::get('checkout', Checkout::class)->name('checkout');
 Route::get('seguimiento', TrackOrder::class)->name('orders.track');
 Route::get('pedido/{order:tracking_code}', [OrderController::class, 'show'])->name('orders.show');
+Route::post('pedido/{order:tracking_code}/pagar', PayController::class)->name('orders.pay');
+Route::get('pago/retorno/{order:tracking_code}', ReturnController::class)->name('payments.return');
+Route::post('webhooks/mercadopago', WebhookController::class)->middleware('throttle:120,1')->name('payments.webhook');
+
+// The stand-in gateway for local development; the controller refuses everything else.
+Route::get('pago/prueba/{paymentId}', [FakeGatewayController::class, 'show'])->name('payments.fake.show');
+Route::post('pago/prueba/{paymentId}', [FakeGatewayController::class, 'decide'])->name('payments.fake.decide');
 Route::get('producto/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 
 Route::get('dashboard', DashboardController::class)

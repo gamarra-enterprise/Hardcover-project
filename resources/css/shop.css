@@ -274,3 +274,6 @@ body.shop {
 .shop .status-pill { display: inline-block; padding: 0.15rem 0.7rem; border-radius: 999px; font-size: 12.5px; font-weight: 700; border: 1px solid currentColor; }
 .shop .history { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: 14px; }
 .shop .history li { display: flex; justify-content: space-between; gap: 1rem; }
+
+.shop .notice-error { background: #fdf0ee; border-color: var(--bad); color: var(--bad); }
+.shop .pay-box { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.8rem; }

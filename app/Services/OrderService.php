@@ -11,12 +11,15 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
-    public function __construct(private readonly InventoryService $inventory) {}
+    public function __construct(
+        private readonly InventoryService $inventory,
+        private readonly PaymentService $payments,
+    ) {}
 
     /**
      * Cancel an order: it moves to "cancelled", everything the customer paid is set aside to be
      * returned in full, and the stock that had been deducted goes back to the shelf. The money
-     * itself is returned by the payment step, which then moves the order to "refunded".
+     * itself is returned through the gateway right after, and the order moves to "refunded" when it is.
      *
      * Cancelling is possible only while the status allows it (before the order ships). Whether this
      * person may cancel this order is for the caller to authorize (see OrderPolicy).
@@ -46,6 +49,12 @@ class OrderService
 
         // The e-mail goes out once everything above has been saved.
         $order->refresh()->notifyStatus(OrderStatus::CANCELLED);
+
+        // The money goes back through the gateway. If that fails the order stays cancelled with its
+        // refund pending, and `payments:retry-refunds` tries again.
+        if ($refund !== null) {
+            $this->payments->refundOrder($order);
+        }
 
         return $refund;
     }

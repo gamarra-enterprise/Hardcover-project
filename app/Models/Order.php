@@ -107,6 +107,12 @@ class Order extends Model
         return URL::temporarySignedRoute('orders.show', now()->addDays($days), ['order' => $this->tracking_code]);
     }
 
+    /** Address the "pay" button posts to; signed, so it works for a guest holding the order link. */
+    public function payUrl(): string
+    {
+        return URL::temporarySignedRoute('orders.pay', now()->addHours(2), ['order' => $this->tracking_code]);
+    }
+
     public function statusHistories(): HasMany
     {
         return $this->hasMany(OrderStatusHistory::class)->orderBy('id');
@@ -144,10 +150,10 @@ class Order extends Model
     }
 
     /** Tell the customer the order is now in this status, when there is an e-mail to tell. */
-    public function notifyStatus(OrderStatus $status): void
+    public function notifyStatus(OrderStatus $status, ?string $reason = null): void
     {
         if ($email = $this->contactEmail()) {
-            Notification::route('mail', $email)->notify(new OrderStatusChanged($this, $status));
+            Notification::route('mail', $email)->notify(new OrderStatusChanged($this, $status, $reason));
         }
     }
 }

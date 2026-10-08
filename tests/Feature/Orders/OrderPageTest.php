@@ -19,6 +19,13 @@ class OrderPageTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->freezeTime();
+    }
+
     private function order(array $attributes = []): Order
     {
         $order = Order::factory()->create(array_merge(['email' => 'ana@example.com', 'tracking_code' => 'HB-261008-0042'], $attributes));
@@ -39,7 +46,7 @@ class OrderPageTest extends TestCase
             ->assertSee('2 × Crónicas marcianas', false)
             ->assertSee('S/ 142.00')
             ->assertSee('Pedido creado')
-            ->assertSee('pago en línea estará disponible');
+            ->assertSee('Pagar S/ 142.00');
     }
 
     public function test_the_order_page_shows_the_delivery_address(): void

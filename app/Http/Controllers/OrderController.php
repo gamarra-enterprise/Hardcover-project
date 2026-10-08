@@ -20,7 +20,7 @@ class OrderController extends Controller
             404,
         );
 
-        $order->load(['items', 'statusHistories']);
+        $order->load(['items', 'statusHistories', 'payments']);
 
         return view('orders.show', ['order' => $order]);
     }

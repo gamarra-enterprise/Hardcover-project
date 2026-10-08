@@ -26,10 +26,26 @@
             </ol>
         @endif
 
+        @if (session('payment_notice'))
+            <div class="notice" role="status">{{ session('payment_notice') }}</div>
+        @endif
+        @if (session('payment_error'))
+            <div class="notice notice-error" role="alert">{{ session('payment_error') }}</div>
+        @endif
+
         @if ($order->status === OrderStatus::PENDING)
-            <div class="notice" role="status">
-                Recibimos tu pedido. Está pendiente de pago: el pago en línea estará disponible muy pronto y tu pedido se confirma al pagar.
-            </div>
+            @if ($order->payments->contains(fn ($p) => $p->status === \App\Enums\PaymentStatus::PROCESSING))
+                <div class="notice" role="status">Estamos verificando tu pago. Te avisaremos por correo cuando se confirme.</div>
+            @else
+                <form class="notice pay-box" method="post" action="{{ $order->payUrl() }}">
+                    @csrf
+                    <span>Tu pedido está pendiente de pago.</span>
+                    <button type="submit" class="btn btn-primary">Pagar {{ Money::format($order->total) }}</button>
+                    @if (config('shop.payment_gateway') === 'fake')
+                        <small class="muted" style="flex-basis: 100%">Modo de prueba: los pagos no son reales.</small>
+                    @endif
+                </form>
+            @endif
         @elseif ($order->status === OrderStatus::CANCELLED && $order->refund_amount !== null)
             <div class="notice" role="status">Pedido cancelado. Te devolveremos {{ Money::format($order->refund_amount) }}.</div>
         @endif

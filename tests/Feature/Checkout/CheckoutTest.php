@@ -27,6 +27,9 @@ class CheckoutTest extends TestCase
     {
         parent::setUp();
 
+        // Signed addresses carry an expiry time; with the clock frozen two of them made a moment apart are equal.
+        $this->freezeTime();
+
         config(['shop.free_shipping_from' => 150]);
 
         $lima = ShippingZone::factory()->create(['name' => 'Lima Metropolitana', 'slug' => 'lima-metropolitana', 'min_cost' => 10, 'position' => 0]);
