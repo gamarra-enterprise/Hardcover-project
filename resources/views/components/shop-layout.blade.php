@@ -23,6 +23,12 @@
                 <div class="hdr-row">
                     <a class="logo" href="{{ route('home') }}">hardcover<small>bookery</small></a>
 
+                    <form class="hdr-search" action="{{ route('catalog') }}" method="get" role="search">
+                        <label for="site-search" class="sr-only-label">Buscar</label>
+                        <span class="hdr-search-icon"><x-shop.icon name="search" size="18" /></span>
+                        <input id="site-search" class="input" type="search" name="q" value="{{ request('q') }}" placeholder="Título, autor o ISBN">
+                    </form>
+
                     <div class="hdr-icons">
                         @guest
                             <a class="btn btn-sm" href="{{ route('login') }}">Ingresar</a>
@@ -38,6 +44,7 @@
                     </div>
                 </div>
                 <nav class="hdr-nav" aria-label="Principal">
+                    <a href="{{ route('catalog') }}" @if (request()->routeIs('catalog', 'products.show')) aria-current="page" @endif>Catálogo</a>
                     <a href="{{ route('home') }}#novedades">Novedades</a>
                 </nav>
             </div>

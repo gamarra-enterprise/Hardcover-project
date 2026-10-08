@@ -40,6 +40,7 @@
                     <p class="muted" style="margin-top: .2rem; font-size: 14.5px">Lo último que llegó a la librería.</p>
                 </div>
             </div>
+            <a class="tlink" href="{{ route('catalog') }}">Ver todo el catálogo →</a>
         </div>
 
         @if ($newest->isEmpty())

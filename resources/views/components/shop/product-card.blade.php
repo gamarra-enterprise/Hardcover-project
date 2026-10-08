@@ -4,8 +4,7 @@
     $discount = $product->sale_price ? (int) round((1 - $product->sale_price / $product->price) * 100) : 0;
 @endphp
 
-{{-- Becomes a link to the product page once that page exists. --}}
-<article class="pcard" style="--i: {{ $index }}">
+<a class="pcard" href="{{ route('products.show', $product) }}" style="--i: {{ $index }}">
     <div style="position: relative">
         @if ($product->status === \App\Enums\ProductStatus::OUT_OF_STOCK)
             <span class="badge out">Sin stock</span>
@@ -25,4 +24,4 @@
             <span class="old num">S/ {{ number_format($product->price, 2) }}</span>
         @endif
     </div>
-</article>
+</a>

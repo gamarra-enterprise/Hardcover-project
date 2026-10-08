@@ -57,6 +57,11 @@ class Product extends Model
         return $this->status->isVisible();
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function bookDetail(): HasOne
     {
         return $this->hasOne(BookDetail::class);

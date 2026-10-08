@@ -64,11 +64,22 @@ body.shop {
 .shop .hdr-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 14px 6px; }
 .shop .logo { font-family: var(--f-display); font-weight: 700; font-size: 1.55rem; letter-spacing: -0.04em; display: flex; align-items: baseline; gap: 0.35rem; text-decoration: none; }
 .shop .logo small { font-family: var(--f-mono); font-weight: 500; font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-deep); }
+.shop .hdr-search { position: relative; flex: 1 1 220px; max-width: 280px; transition: max-width 0.5s var(--ease); order: -1; }
+.shop .hdr-search:focus-within { max-width: 440px; }
+.shop .hdr-search .input { padding-left: 42px; border-radius: 999px; background: var(--surface); border-color: transparent; }
+.shop .hdr-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); display: flex; pointer-events: none; }
+.shop .hdr-row .logo { position: absolute; left: 50%; transform: translateX(-50%); }
+.shop .hdr-row { position: relative; min-height: 44px; }
 .shop .hdr-icons { display: flex; gap: 0.4rem; align-items: center; }
 .shop .hdr-nav { display: flex; justify-content: center; gap: 1.7rem; padding-bottom: 10px; overflow-x: auto; }
 .shop .hdr-nav a, .shop .hdr-icons a:not(.btn) { padding: 0.4rem 0.2rem; font-weight: 500; font-size: 14.5px; text-decoration: none; border-bottom: 2px solid transparent; white-space: nowrap; }
 .shop .hdr-nav a:hover, .shop .hdr-nav a[aria-current='page'] { border-bottom-color: var(--accent); }
-@media (max-width: 700px) { .shop .hdr-nav { justify-content: flex-start; gap: 1.2rem; } }
+@media (max-width: 700px) {
+    .shop .hdr-nav { justify-content: flex-start; gap: 1.2rem; }
+    .shop .hdr-row { flex-wrap: wrap; }
+    .shop .hdr-row .logo { position: static; transform: none; order: -2; }
+    .shop .hdr-search { order: 3; flex-basis: 100%; max-width: none; }
+}
 
 /* covers: real image when the product has one, typographic placeholder otherwise */
 .shop .cw { container-type: inline-size; }
@@ -148,3 +159,46 @@ body.shop {
     .play .cv-word .l > i, .play .cv-eyebrow, .play .cv-sub, .play .cv-actions, .play .cv-c, .play .pgrid .pcard, .shop .cv-hint i { animation: none; }
     .shop .pcard .cover { transition: none; }
 }
+
+/* catalog: genre chips, filter panel, active filters, pager */
+[x-cloak] { display: none !important; }
+.shop .select { padding: 0.5rem 0.9rem; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); font: inherit; }
+.shop .chips-row { display: flex; gap: 0.5rem; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; }
+.shop .chips-row::-webkit-scrollbar { display: none; }
+.shop .chip { padding: 0.4rem 0.85rem; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); font-size: 13.5px; font-weight: 500; white-space: nowrap; display: inline-flex; gap: 0.45rem; align-items: baseline; cursor: pointer; text-decoration: none; }
+.shop .chip:hover { border-color: var(--ink); }
+.shop .chip[aria-pressed='true'] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.shop .cnt { font-size: 11.5px; opacity: 0.6; font-variant-numeric: tabular-nums; }
+.shop .fpanel-in { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 30px; background: var(--surface); border-radius: 22px; padding: 26px; }
+.shop .switch-row { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; cursor: pointer; }
+.shop .switch { position: relative; width: 42px; height: 24px; flex: none; }
+.shop .switch input { position: absolute; inset: 0; opacity: 0; cursor: pointer; margin: 0; }
+.shop .switch span { position: absolute; inset: 0; border-radius: 99px; background: var(--surface2); border: 1px solid var(--line); transition: 0.15s; }
+.shop .switch span::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--bg); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transition: 0.15s; }
+.shop .switch input:checked + span { background: var(--accent); border-color: var(--accent); }
+.shop .switch input:checked + span::after { transform: translateX(18px); }
+.shop .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.shop .achips { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; min-height: 36px; margin-top: 14px; }
+.shop .achip { padding: 0.3rem 0.8rem; border-radius: 999px; border: 1px solid var(--ink); background: var(--bg); font-size: 13px; font-weight: 600; cursor: pointer; }
+.shop .achip:hover { background: var(--ink); color: var(--bg); }
+.shop .tlink { background: none; border: 0; padding: 0; cursor: pointer; }
+.shop .loading { opacity: 0.55; transition: opacity 0.2s; }
+.shop .pager { display: flex; justify-content: center; align-items: center; gap: 1.2rem; margin-top: 44px; }
+.shop .pager button[disabled] { opacity: 0.4; cursor: not-allowed; }
+.shop .pager .btn-sm { border-color: var(--line); }
+
+/* product page */
+.shop .detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 44px; margin-top: 22px; align-items: start; }
+.shop .dcover { max-width: 420px; width: 100%; margin-inline: auto; position: relative; }
+.shop .dcover .cover { transition: transform 0.38s var(--ease), box-shadow 0.38s; }
+.shop .dcover:hover .cover { transform: scale(1.03); box-shadow: 0 24px 44px rgba(12, 26, 8, 0.22); }
+.shop .dcover .cover-ph .ct { font-size: 9cqw; }
+.shop .stock { margin-top: 1.2rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--ok); }
+.shop .stock .dot-state { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.shop .stock.is-low { color: #9a6200; }
+.shop .stock.is-out { color: var(--bad); }
+.shop .prose-block { margin-top: 1.1rem; max-width: 62ch; font-size: 1.05rem; line-height: 1.7; }
+.shop .specs { width: 100%; border-collapse: collapse; }
+.shop .specs th { text-align: left; font-weight: 500; color: var(--muted); padding: 0.55rem 0; width: 42%; border-bottom: 1px solid var(--line); }
+.shop .specs td { padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) { .shop .dcover .cover { transition: none; } }
