@@ -9,9 +9,15 @@ use Illuminate\Support\Str;
 
 /**
  * Zones and rates taken from the AxisLab requirements: Lima Metropolitana from S/ 10 and
- * Lima Provincia from S/ 15. The 43 districts of Lima Metropolitana are loaded; the districts of
- * Lima Provincia (and any other area) are added by the staff from the panel.
- * Running it again keeps the rates that were edited.
+ * Lima Provincia from S/ 15. The shop delivers only there for now; any other region is shown as
+ * "próximamente" at checkout.
+ *
+ * Lima Provincia loads the 128 districts of the other nine provinces of the department, but only
+ * the coastal provinces start active. The mountain ones are loaded inactive for the administrator
+ * to switch on. Ubigeo codes follow the INEI list as I remember it and should be checked once
+ * against the official file.
+ *
+ * Running it again keeps the rates and the active flag that were edited.
  */
 class ShippingSeeder extends Seeder
 {
@@ -31,16 +37,43 @@ class ShippingSeeder extends Seeder
         '150143' => 'Villa María del Triunfo',
     ];
 
+    /** Province ubigeo prefix => [name, active by default, districts in the official order] */
+    private const LIMA_PROVINCIA = [
+        '1502' => ['Barranca', true, ['Barranca', 'Paramonga', 'Pativilca', 'Supe', 'Supe Puerto']],
+        '1503' => ['Cajatambo', false, ['Cajatambo', 'Copa', 'Gorgor', 'Huancapón', 'Manás']],
+        '1504' => ['Canta', false, ['Canta', 'Arahuay', 'Huamantanga', 'Huaros', 'Lachaqui', 'San Buenaventura', 'Santa Rosa de Quives']],
+        '1505' => ['Cañete', true, ['San Vicente de Cañete', 'Asia', 'Calango', 'Cerro Azul', 'Chilca', 'Coayllo', 'Imperial', 'Lunahuaná', 'Mala', 'Nuevo Imperial', 'Pacarán', 'Quilmaná', 'San Antonio', 'San Luis', 'Santa Cruz de Flores', 'Zúñiga']],
+        '1506' => ['Huaral', true, ['Huaral', 'Atavillos Alto', 'Atavillos Bajo', 'Aucallama', 'Chancay', 'Ihuarí', 'Lampián', 'Pacaraos', 'San Miguel de Acos', 'Santa Cruz de Andamarca', 'Sumbilca', 'Veintisiete de Noviembre']],
+        '1507' => ['Huarochirí', false, ['Matucana', 'Antioquía', 'Callahuanca', 'Carampoma', 'Chicla', 'Cuenca', 'Huachupampa', 'Huanza', 'Huarochirí', 'Lahuaytambo', 'Langa', 'Laraos', 'Mariatana', 'Ricardo Palma', 'San Andrés de Tupicocha', 'San Antonio', 'San Bartolomé', 'San Damián', 'San Juan de Iris', 'San Juan de Tantaranche', 'San Lorenzo de Quinti', 'San Mateo', 'San Mateo de Otao', 'San Pedro de Casta', 'San Pedro de Huancayre', 'Sangallaya', 'Santa Cruz de Cocachacra', 'Santa Eulalia', 'Santiago de Anchucaya', 'Santiago de Tuna', 'Santo Domingo de los Olleros', 'Surco']],
+        '1508' => ['Huaura', true, ['Huacho', 'Ámbar', 'Caleta de Carquín', 'Checras', 'Hualmay', 'Huaura', 'Leoncio Prado', 'Paccho', 'Santa Leonor', 'Santa María', 'Sayán', 'Vegueta']],
+        '1509' => ['Oyón', false, ['Oyón', 'Andajes', 'Caujul', 'Cochamarca', 'Naván', 'Pachangara']],
+        '1510' => ['Yauyos', false, ['Yauyos', 'Alis', 'Allauca', 'Ayaviri', 'Azángaro', 'Cacra', 'Carania', 'Catahuasi', 'Chocos', 'Cochas', 'Colonia', 'Hongos', 'Huampara', 'Huancaya', 'Huangáscar', 'Huantán', 'Huañec', 'Laraos', 'Lincha', 'Madeán', 'Miraflores', 'Omas', 'Putinza', 'Quinches', 'Quinocay', 'San Joaquín', 'San Pedro de Pilas', 'Tanta', 'Tauripampa', 'Tomás', 'Tupe', 'Viñac', 'Vitis']],
+    ];
+
     public function run(): void
     {
         $metropolitana = $this->zone('Lima Metropolitana', '10.00', 0);
-        $this->zone('Lima Provincia', '15.00', 1);
+        $provincia = $this->zone('Lima Provincia', '15.00', 1);
+
+        $this->provincia($provincia);
 
         foreach (self::LIMA_METROPOLITANA as $ubigeo => $name) {
             ShippingDistrict::firstOrCreate(
                 ['ubigeo' => $ubigeo],
                 ['shipping_zone_id' => $metropolitana->id, 'name' => $name, 'cost' => $metropolitana->min_cost],
             );
+        }
+    }
+
+    private function provincia(ShippingZone $zone): void
+    {
+        foreach (self::LIMA_PROVINCIA as $prefix => [$province, $active, $districts]) {
+            foreach ($districts as $i => $name) {
+                ShippingDistrict::firstOrCreate(
+                    ['ubigeo' => $prefix.str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT)],
+                    ['shipping_zone_id' => $zone->id, 'name' => $name, 'cost' => $zone->min_cost, 'is_active' => $active],
+                );
+            }
         }
     }
 

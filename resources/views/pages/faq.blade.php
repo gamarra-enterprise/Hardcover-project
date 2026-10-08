@@ -7,6 +7,17 @@
 
         <div class="faq">
             <details open>
+                <summary>¿A qué lugares envían?</summary>
+                <div class="prose-block">
+                    @if ($served->isNotEmpty())
+                        <p>Por ahora enviamos a {{ $served->join(', ', ' y ') }}. Los envíos a otras regiones estarán disponibles próximamente.</p>
+                    @else
+                        <p>Los envíos estarán disponibles próximamente.</p>
+                    @endif
+                </div>
+            </details>
+
+            <details>
                 <summary>¿Cuánto cuesta el envío?</summary>
                 <div class="prose-block">
                     @if ($zones->isNotEmpty())

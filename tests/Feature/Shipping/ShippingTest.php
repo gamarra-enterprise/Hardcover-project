@@ -20,15 +20,34 @@ class ShippingTest extends TestCase
         return app(ShippingService::class);
     }
 
-    public function test_the_seeder_loads_the_two_zones_and_the_43_districts_of_lima_metropolitana(): void
+    public function test_the_seeder_loads_both_zones_and_their_districts(): void
     {
         $this->seed(ShippingSeeder::class);
         $this->seed(ShippingSeeder::class);
 
         $this->assertSame(['10.00', '15.00'], ShippingZone::orderBy('position')->pluck('min_cost')->map(fn ($c) => (string) $c)->all());
-        $this->assertSame(43, ShippingDistrict::count());
+        $this->assertSame(171, ShippingDistrict::count());
         $this->assertSame('Miraflores', ShippingDistrict::where('ubigeo', '150122')->value('name'));
         $this->assertSame('10.00', (string) ShippingDistrict::where('ubigeo', '150122')->value('cost'));
+
+        $metropolitana = ShippingZone::where('slug', 'lima-metropolitana')->first();
+        $provincia = ShippingZone::where('slug', 'lima-provincia')->first();
+        $this->assertSame(43, $metropolitana->districts()->count());
+        $this->assertSame(43, $metropolitana->districts()->where('is_active', true)->count());
+        $this->assertSame(128, $provincia->districts()->count());
+        $this->assertSame('15.00', (string) $provincia->districts()->first()->cost);
+    }
+
+    public function test_lima_provincia_starts_with_the_coastal_provinces_active_and_the_mountain_ones_off(): void
+    {
+        $this->seed(ShippingSeeder::class);
+
+        $this->assertTrue((bool) ShippingDistrict::where('ubigeo', '150501')->value('is_active')); // Cañete
+        $this->assertTrue((bool) ShippingDistrict::where('ubigeo', '150801')->value('is_active')); // Huacho
+        $this->assertFalse((bool) ShippingDistrict::where('ubigeo', '151001')->value('is_active')); // Yauyos
+        $this->assertFalse((bool) ShippingDistrict::where('ubigeo', '150701')->value('is_active')); // Matucana
+        $this->assertSame(45, ShippingDistrict::where('ubigeo', 'like', '15%')->where('is_active', true)->count() - 43);
+        $this->assertSame(171, ShippingDistrict::distinct('ubigeo')->count());
     }
 
     public function test_the_seeder_keeps_the_rates_that_were_edited(): void

@@ -34,18 +34,20 @@ class ShippingService
     }
 
     /**
-     * Districts the shop delivers to, grouped by zone, for the checkout selector.
+     * Districts the shop delivers to, grouped by zone, for the checkout selector. With
+     * $includeEmpty the zones that have no active district yet are kept, so the checkout can show
+     * them as "próximamente".
      *
      * @return Collection<int, ShippingZone>
      */
-    public function zonesWithDistricts(): Collection
+    public function zonesWithDistricts(bool $includeEmpty = false): Collection
     {
         return ShippingZone::query()
             ->where('is_active', true)
             ->with(['districts' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
             ->orderBy('position')
             ->get()
-            ->filter(fn (ShippingZone $zone) => $zone->districts->isNotEmpty())
+            ->filter(fn (ShippingZone $zone) => $includeEmpty || $zone->districts->isNotEmpty())
             ->values();
     }
 }
