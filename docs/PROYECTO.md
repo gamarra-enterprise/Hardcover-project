@@ -7,8 +7,10 @@ Tienda en línea de libros y productos afines (separadores, llaveros, figuras). 
 | Perfil | Rol | Puede |
 |---|---|---|
 | Cliente | `customer` | Navegar el sitio, manejar su carrito, comprar y ver solo sus pedidos y direcciones |
-| Administrador | `admin` | Gestionar productos (alta, edición, precios, stock), categorías y pedidos, y ver reportes. No ve usuarios ni roles |
-| Super administrador | `super_admin` | Control total: todo lo anterior, más las cuentas y roles de todos los usuarios, pasarelas, tarifas de envío y actividad |
+| Administrador | `admin` | Gestionar productos (alta, edición, precios, stock), categorías y pedidos, **distritos y tarifas de envío**, y ver reportes. No ve usuarios ni roles |
+| Super administrador | `super_admin` | Control total: todo lo anterior, más las cuentas y roles de todos los usuarios, pasarelas de pago y actividad |
+
+El prototipo muestra las tarifas de envío dentro del super admin; la decisión vigente es que las maneja el administrador.
 
 Acceso: middleware `role:` (`admin` o `super_admin`; el super admin siempre pasa), `Gate::before` que da todos los permisos al super admin, y policies en `app/Policies`. Paneles en `/admin` y `/super`; `/dashboard` redirige según el rol.
 
@@ -57,6 +59,17 @@ Laravel 13 (PHP 8.5 en Sail) · PostgreSQL 18 · Livewire 3 + Volt · Breeze · 
 - `/producto/{slug}`: ficha del libro (`ProductController`). Un producto oculto responde 404 al público y se abre para el personal. El botón de compra está deshabilitado hasta el paso del carrito.
 - Pendiente del prototipo: vista rápida de la ficha en una ventana sobre el catálogo.
 
+## Carrito y stock
+
+Reglas de negocio:
+
+- Guardar un producto en el carrito **no baja el stock ni lo reserva**. Varias personas pueden tener la última unidad en su carrito a la vez; nadie queda bloqueado.
+- El stock baja **solo cuando el pago se confirma** (paso de pagos). Esa deducción tiene que ser atómica y con bloqueo de fila, y prever que la última unidad ya se haya vendido a otra persona entre el carrito y el pago.
+- Una persona no puede llevar más unidades de las que hay: la cantidad de una línea se limita al stock actual. El stock de otros carritos nunca cuenta.
+- Si después el stock baja, el producto se oculta o se agota, el carrito **no cambia solo**: la línea muestra un aviso («Solo quedan 2 unidades», «Este producto se quedó sin stock») con la opción de ajustar o quitar, y el subtotal no cuenta las líneas con aviso. El checkout deberá exigir que no haya avisos.
+
+Implementación: `CartService` (carrito del usuario en BD; el de invitado, ligado a un token en la sesión que sobrevive al cambio de sesión del login), `InventoryService` (disponibilidad y avisos), el listener `MergeGuestCart` (al iniciar sesión se suman las cantidades sin pasar del stock y se borra el carrito de invitado) y los componentes Livewire de `app/Livewire/Cart` (añadir desde la ficha, contador de la cabecera, panel lateral y `/carrito`). Las acciones del carrito solo ven las líneas del carrito del visitante, aunque el navegador envíe otro id. Un usuario tiene un solo carrito (índice único en `carts.user_id`). Pendiente: limpiar carritos de invitado antiguos con una tarea programada. El envío gratis desde `config/shop.php` (`SHOP_FREE_SHIPPING_FROM`).
+
 ## Idioma
 
 La aplicación corre en español (`APP_LOCALE=es`, faker `es_PE`). Las traducciones están en `lang/es/` (validación, autenticación, contraseñas, paginación) y `lang/es.json` (textos de Breeze y correos del framework). `lang/es/validation.php` incluye los nombres en español de los campos (`attributes`); al añadir un campo nuevo a un formulario, agrégalo ahí. El idioma de reserva es `en`. La zona horaria sigue en UTC.
@@ -81,13 +94,58 @@ Prototipo navegable en [`prototype/`](../prototype/README.md): abre `prototype/i
 - Otros proyectos: `ErickGamarra` con el correo institucional.
 - Commits pequeños y por tema. Nunca incluir `.env` ni credenciales.
 
+## Envío, pedidos y reembolsos (rescatado de AxisLab)
+
+Origen: el informe de requerimientos de AxisLab (venta de productos impresos en 3D), un proyecto anterior del equipo. Se rescataron las funciones que corresponden a un módulo de negocio real y se adaptaron a una librería.
+
+**Envío por distrito** (`ShippingZone`, `ShippingDistrict`, `ShippingService`). Las librerías del CSV no tienen peso, así que el envío no se calcula por peso sino por distrito de destino, como en AxisLab. Hay zonas con un costo mínimo (Lima Metropolitana S/ 10, Lima Provincia S/ 15) y distritos con su costo. El costo de un distrito se puede subir pero nunca bajar del mínimo de su zona: la regla está en el modelo (`ShippingCostBelowMinimum`), así que ninguna pantalla ni importación puede saltársela; y si se sube el mínimo de una zona, los distritos que quedaban por debajo suben con ella. Una zona con distritos no se puede borrar. El envío es gratis desde `SHOP_FREE_SHIPPING_FROM`. El seeder carga los 43 distritos de Lima Metropolitana (con su ubigeo); los de Lima Provincia los agrega el administrador desde el panel. Las zonas, los distritos y sus tarifas los gestiona el administrador (`ShippingZonePolicy` y `ShippingDistrictPolicy`).
+
+**Estados del pedido con historial** (`OrderStatus`, `Order::transitionTo()`, `OrderStatusHistory`). Un pedido solo avanza por las transiciones permitidas (pendiente → confirmado → en preparación → enviado → entregado; cancelar solo hasta la preparación; reembolsar al final). Cada cambio guarda quién, cuándo y por qué en una tabla de solo-agregar, y se bloquea la fila para que dos personas no cambien el mismo pedido a la vez. El cliente recibe un correo en cada cambio (`OrderStatusChanged`, en español).
+
+**Stock solo al pagar** (`InventoryService::deductForOrder()` y `restoreForOrder()`). Al confirmarse el pago se descuenta el stock de todo el pedido: bloquea las filas de los productos, es todo o nada y se puede repetir sin descontar dos veces. Si otra persona ya compró la última unidad lanza `InsufficientStock` con el detalle, sin tocar nada, y el paso de pagos decide qué hacer con ese pedido. Al cancelar, el stock vuelve.
+
+**Cancelación con reembolso total** (`OrderService::cancel()`, `OrderPolicy::cancel()`). El cliente cancela mientras el estado lo permita (hasta antes de enviarse). Se le devuelve todo lo que pagó: el servicio deja el monto en `orders.refund_amount` y devuelve el stock. Devolver el dinero por la pasarela y pasar el pedido a «reembolsado» es del paso de pagos. No hay porcentajes de reembolso: se decidió que no hacían falta en este sistema.
+
+**Contacto por WhatsApp**: pospuesto para después (en AxisLab servía para consultas y diseños personalizados; aquí serviría para consultar un libro y encargar un título que no está en el catálogo). No hay ningún enlace ni configuración en el código.
+
+**Páginas** `/nosotros` y `/preguntas-frecuentes`. La FAQ lee de la base de datos los costos de envío, así que no puede contradecir las tarifas reales.
+
+### Qué se tomó y qué no del informe
+
+| Requisito de AxisLab | Estado en Hardcover |
+|---|---|
+| Registro, inicio de sesión y roles cliente/administrador | Hecho, con un tercer rol (super admin) |
+| Catálogo, detalle, búsqueda y filtros avanzados | Hecho (más completo: sin tildes, por género, precio, oferta y stock) |
+| Carrito, agregar y eliminar, aviso si cambia el stock | Hecho |
+| Costo de envío por distrito, mínimos y edición de tarifas | Modelo, reglas, permisos del administrador y cálculo hechos; falta la pantalla de administración y el selector del checkout |
+| Estados del pedido y trazabilidad | Hecho el flujo, el historial y el correo; falta la pantalla del administrador y «Mis pedidos» |
+| Cancelar pedido y reembolso, stock al cancelar | Hecho (reembolso total, sin porcentajes) y el stock; falta el botón del cliente y el reembolso real |
+| Stock baja al confirmar la compra | Hecho (al confirmarse el pago) |
+| Enlace a WhatsApp | Pospuesto para después |
+| Sobre nosotros y FAQ | Hecho |
+| Gestión del catálogo por el administrador, con «respaldo» del catálogo | Paso 9. El respaldo del catálogo será una exportación a CSV con el mismo formato que la importación |
+| Respaldos de la base de datos (ver, descargar, cargar) | Paso 10, solo super admin. Crear y descargar desde el panel; **restaurar solo desde la consola**, porque un botón web que reemplaza toda la base es demasiado peligroso |
+| Reportes y métricas (recomendación) | Paso 9, en el resumen de ventas |
+| Yape y Plin (recomendación) | Paso 7: evaluar qué admite la pasarela elegida |
+| Autenticación en dos pasos para administradores (recomendación) | Antes de salir a producción |
+| Rendimiento: respuesta en menos de 3 s, 50 a 100 usuarios a la vez, 99 % de disponibilidad | Paso 12: pruebas de carga y monitoreo |
+| Almacenamiento en la nube (actor del informe) | En producción, imágenes y respaldos en un disco S3 compatible |
+| Fases «preparación de materiales, en impresión, impreso» y atributos 3D (material, colores, acabado, resistencia) | Descartado: son de impresión 3D. Se adaptó a confirmado, en preparación, enviado y entregado |
+| «Diseños personalizados» | Pospuesto junto con WhatsApp (encargos de libros) |
+
 ## Siguiente
 
-1. Pasar el prototipo a Blade y Livewire por partes. Hecho: layout, inicio, catálogo y ficha. Falta: carrito, checkout y paneles.
-2. Pasarelas Stripe y Mercado Pago.
+1. **Checkout**: dirección, selector de distrito con el costo de envío (`ShippingService`), correo de contacto, creación del pedido con sus copias. No reserva stock.
+2. **Pagos** (Stripe y Mercado Pago, evaluar Yape y Plin): al confirmarse el pago, confirmar el pedido y descontar el stock; decidir qué hacer si `InsufficientStock`; devolver el dinero de las cancelaciones.
+3. **Cuenta del cliente**: «Mis pedidos» con la línea de tiempo y el botón de cancelar; direcciones.
+4. **Panel de administración**: productos y categorías (agregar, editar, ocultar), pedidos con cambio de estado, distritos y tarifas de envío, exportación del catálogo, resumen de ventas.
+5. **Panel de super admin**: usuarios y roles, pasarelas, respaldos, registro de actividad.
+6. Correos, accesibilidad, pruebas de carga y despliegue.
 
 ## Decisiones abiertas
 
+- **Alcance del envío**: AxisLab solo enviaba a Lima. El prototipo de Hardcover decía «todo el Perú». Hoy solo hay zonas de Lima; si se enviará a provincias hay que definir las zonas y sus tarifas.
+- **WhatsApp**: pospuesto. Al retomarlo falta el número del negocio y decidir dónde se muestra.
 - Verificación de correo: `User` no implementa `MustVerifyEmail`, así que el middleware `verified` hoy no bloquea a nadie. Activarla afecta a todos los clientes.
 - Logo y colores reales de la marca (hoy el logo es solo texto).
-- Políticas reales de envío, devoluciones y preguntas frecuentes (hoy son de ejemplo).
+- Políticas reales de envío y devoluciones: la barra superior («Despachamos en 24 horas») y la franja de confianza («Recojo en tienda», «Envoltorio de regalo») siguen siendo texto de ejemplo del prototipo.
