@@ -13,6 +13,9 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                display: ['Bricolage Grotesque', ...defaultTheme.fontFamily.sans],
+                body: ['Instrument Sans', ...defaultTheme.fontFamily.sans],
+                mono: ['JetBrains Mono', ...defaultTheme.fontFamily.mono],
             },
         },
     },
