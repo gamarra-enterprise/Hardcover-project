@@ -10,8 +10,6 @@ Tienda en línea de libros y productos afines (separadores, llaveros, figuras). 
 | Administrador (ventas) | `admin` | Lo anterior, más pedidos, productos, stock y reportes |
 | Super administrador | `super_admin` | Todo, más usuarios y roles, pasarelas, tarifas de envío y actividad |
 
-> Hoy el enum `UserRole` tiene `admin`, `customer` y `logistics`. Hay que cambiarlo a los tres de arriba.
-
 ## Stack
 
 Laravel 13 (PHP 8.5 en Sail) · PostgreSQL 18 · Livewire 3 + Volt · Breeze · Tailwind · Vite · Docker/Sail sobre Fedora con SELinux.
@@ -61,12 +59,11 @@ Prototipo navegable en [`prototype/`](../prototype/README.md): abre `prototype/i
 
 ## Siguiente
 
-1. Roles `super_admin` / `admin` / `customer`.
-2. Cambiar `books` por una tabla general `products` con una extensión para los datos del libro (ISBN, páginas, editorial, formato). **Decidido:** una sola tabla de productos.
-3. Modelos, factories y seeders (con los 16 productos del prototipo).
-4. Acceso por roles: Breeze, middleware y policies.
-5. Pasar el prototipo a Blade y Livewire por partes: layout, inicio, catálogo, ficha, carrito, checkout y paneles.
-6. Pasarelas Stripe y Mercado Pago.
+1. Cambiar `books` por una tabla general `products` con una extensión para los datos del libro (ISBN, páginas, editorial, formato). **Decidido:** una sola tabla de productos.
+2. Modelos, factories y seeders (con los 16 productos del prototipo).
+3. Acceso por roles: Breeze, middleware y policies.
+4. Pasar el prototipo a Blade y Livewire por partes: layout, inicio, catálogo, ficha, carrito, checkout y paneles.
+5. Pasarelas Stripe y Mercado Pago.
 
 ## Decisiones abiertas
 
