@@ -62,7 +62,7 @@ Prototipo navegable en [`prototype/`](../prototype/README.md): abre `prototype/i
 ## Siguiente
 
 1. Roles `super_admin` / `admin` / `customer`.
-2. Cambiar `books` por una tabla general `products` con una extensión para los datos del libro (ISBN, páginas, editorial, formato). Decisión recomendada, pendiente de confirmar.
+2. Cambiar `books` por una tabla general `products` con una extensión para los datos del libro (ISBN, páginas, editorial, formato). **Decidido:** una sola tabla de productos.
 3. Modelos, factories y seeders (con los 16 productos del prototipo).
 4. Acceso por roles: Breeze, middleware y policies.
 5. Pasar el prototipo a Blade y Livewire por partes: layout, inicio, catálogo, ficha, carrito, checkout y paneles.
@@ -70,6 +70,5 @@ Prototipo navegable en [`prototype/`](../prototype/README.md): abre `prototype/i
 
 ## Decisiones abiertas
 
-- ¿Una sola tabla de productos con extensión de libro?
 - Logo y colores reales de la marca (hoy el logo es solo texto).
 - Políticas reales de envío, devoluciones y preguntas frecuentes (hoy son de ejemplo).
