@@ -1,5 +1,7 @@
 # Hardcover - E-commerce Platform for Physical Books
 
+> Resumen breve en español: [docs/PROYECTO.md](docs/PROYECTO.md)
+
 ## Purpose and Functional Scope
 
 Hardcover is a Laravel-based e-commerce platform specialized in the sale of physical books. The system provides a complete solution for managing a categorized book catalog, physical inventory control, shipping calculation and dispatch, and transactional processing through payment gateways (Stripe / Mercado Pago).
