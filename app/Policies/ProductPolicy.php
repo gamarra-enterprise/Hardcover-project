@@ -6,7 +6,7 @@ use App\Models\Product;
 use App\Models\User;
 
 /**
- * Anyone, guests included, can browse active products. Only staff manage the catalog.
+ * Anyone, guests included, can browse visible products (active or out of stock). Only staff manage the catalog.
  */
 class ProductPolicy
 {
@@ -17,7 +17,7 @@ class ProductPolicy
 
     public function view(?User $user, Product $product): bool
     {
-        return $product->is_active || (bool) $user?->isStaff();
+        return $product->isVisible() || (bool) $user?->isStaff();
     }
 
     public function create(User $user): bool

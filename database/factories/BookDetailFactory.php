@@ -21,6 +21,8 @@ class BookDetailFactory extends Factory
             'published_year' => fake()->numberBetween(1900, 2025),
             'pages' => fake()->numberBetween(80, 800),
             'format' => fake()->randomElement(['Tapa blanda', 'Tapa dura']),
+            'genres' => 'ficción / novela',
+            'author_bio' => fake()->paragraph(),
         ];
     }
 }

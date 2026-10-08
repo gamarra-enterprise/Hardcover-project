@@ -81,7 +81,7 @@ class RoleAccessTest extends TestCase
     public function test_everyone_can_browse_active_products_but_not_inactive_ones(): void
     {
         $active = Product::factory()->create();
-        $hidden = Product::factory()->create(['is_active' => false]);
+        $hidden = Product::factory()->hidden()->create();
 
         $this->assertTrue(Gate::forUser(null)->allows('view', $active));
         $this->assertFalse(Gate::forUser(null)->allows('view', $hidden));

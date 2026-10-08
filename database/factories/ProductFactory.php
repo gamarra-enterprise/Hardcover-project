@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ProductStatus;
 use App\Models\BookDetail;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -28,7 +29,7 @@ class ProductFactory extends Factory
             'width_mm' => fake()->numberBetween(30, 150),
             'height_mm' => fake()->numberBetween(45, 230),
             'depth_mm' => fake()->numberBetween(4, 40),
-            'is_active' => true,
+            'status' => ProductStatus::ACTIVE,
         ];
     }
 
@@ -50,5 +51,10 @@ class ProductFactory extends Factory
     public function outOfStock(): static
     {
         return $this->state(['stock' => 0]);
+    }
+
+    public function hidden(): static
+    {
+        return $this->state(['status' => ProductStatus::HIDDEN]);
     }
 }
