@@ -30,6 +30,10 @@ class ImportProducts extends Command
         $this->line('Géneros como filtro ('.count($result['filter_genres']).'): '.implode(', ', $result['filter_genres']));
         $this->line("Géneros solo como texto: {$result['other_genres']}");
 
+        foreach ($result['variants'] as $message) {
+            $this->components->info($message);
+        }
+
         foreach ([...$result['skipped'], ...$result['warnings']] as $message) {
             $this->components->warn($message);
         }

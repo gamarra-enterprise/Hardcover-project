@@ -106,6 +106,38 @@ CSV);
         $this->assertNull(Product::where('name', 'Sin medidas')->value('height_mm'));
     }
 
+    public function test_a_row_without_title_after_a_book_is_a_variant_and_changes_nothing(): void
+    {
+        $lines = [
+            'STOCK,TÍTULO,AUTOR,GÉNERO,EDITORIAL,ISBN,PÁGINAS,TAMAÑO,FORMATO,INFO LIBRO,INFO AUTOR,WEB,PDC,PVP',
+            '1,Libro gris,Autor,novela,Anagrama (gris),9788433998224,280,22 x 14,tapa blanda,x,,no,45,90',
+            '1,,,,Anagrama (azul),9788433906328,288,20 x 13,tapa blanda,,,no,41,82',
+        ];
+        $path = $this->dir.'/variantes.csv';
+        file_put_contents($path, implode("\n", $lines));
+
+        $result = (new ProductImporter(1))->import($path);
+
+        $this->assertSame(1, $result['created']);
+        $this->assertSame([], $result['skipped']);
+        $this->assertCount(1, $result['variants']);
+        $this->assertStringContainsString('«Libro gris»', $result['variants'][0]);
+        $this->assertSame(1, Product::count());
+        $this->assertSame(1, Product::where('sku', 'HB-9788433998224')->value('stock'));
+        $this->assertNull(Product::where('sku', 'HB-9788433906328')->first());
+    }
+
+    public function test_a_title_less_row_with_no_book_before_it_is_skipped(): void
+    {
+        $path = $this->dir.'/solo.csv';
+        file_put_contents($path, "STOCK,TÍTULO,AUTOR,GÉNERO,EDITORIAL,ISBN,PÁGINAS,TAMAÑO,FORMATO,INFO LIBRO,INFO AUTOR,WEB,PDC,PVP\n1,,,,Ed,9788433906328,288,20 x 13,tapa blanda,,,no,41,82");
+
+        $result = (new ProductImporter(1))->import($path);
+
+        $this->assertCount(1, $result['skipped']);
+        $this->assertSame([], $result['variants']);
+    }
+
     public function test_running_twice_updates_instead_of_duplicating(): void
     {
         $importer = new ProductImporter(2);

@@ -21,6 +21,8 @@ use InvalidArgumentException;
  *   $minGenreCount books become categories (the shop filters).
  * - WEB is the product state: "activo", "oculto" or "sin stock". Any other value (the sheet
  *   currently says "no") is ignored with a warning. "Sin stock" itself comes from the stock count.
+ * - A row without title that follows a book is another tone of that same book (for example
+ *   "Anagrama (azul)" after "Anagrama (gris)"). It is reported as a variant and changes nothing.
  * - Running it again updates the same products instead of duplicating them.
  */
 class ProductImporter
@@ -39,11 +41,11 @@ class ProductImporter
     public function __construct(private readonly int $minGenreCount = 8) {}
 
     /**
-     * @return array{created: int, updated: int, skipped: list<string>, warnings: list<string>, filter_genres: list<string>, other_genres: int, covers: int}
+     * @return array{created: int, updated: int, skipped: list<string>, variants: list<string>, warnings: list<string>, filter_genres: list<string>, other_genres: int, covers: int}
      */
     public function import(string $csvPath, bool $dryRun = false, ?string $coversDir = null): array
     {
-        [$rows, $skipped] = $this->readRows($csvPath);
+        [$rows, $skipped, $variants] = $this->readRows($csvPath);
 
         $counts = [];
         foreach ($rows as $row) {
@@ -62,7 +64,7 @@ class ProductImporter
         }
 
         $result = [
-            'created' => 0, 'updated' => 0, 'skipped' => $skipped, 'warnings' => [],
+            'created' => 0, 'updated' => 0, 'skipped' => $skipped, 'variants' => $variants, 'warnings' => [],
             'filter_genres' => $filterGenres, 'other_genres' => count($counts) - count($filterGenres), 'covers' => 0,
         ];
 
@@ -165,7 +167,7 @@ class ProductImporter
     }
 
     /**
-     * @return array{0: list<array<string, mixed>>, 1: list<string>}
+     * @return array{0: list<array<string, mixed>>, 1: list<string>, 2: list<string>}
      */
     private function readRows(string $path): array
     {
@@ -177,6 +179,8 @@ class ProductImporter
         $header = null;
         $rows = [];
         $skipped = [];
+        $variants = [];
+        $lastTitle = null;
         $seen = [];
         $line = 0;
 
@@ -203,6 +207,11 @@ class ProductImporter
             $title = $get('TÍTULO');
             $isbn = preg_replace('/\D/', '', $get('ISBN'));
 
+            if ($title === '' && $lastTitle !== null) {
+                $variants[] = "Fila {$line} ({$get('EDITORIAL')}, ISBN {$isbn}): se trata como el mismo producto que «{$lastTitle}»; no se modificó nada";
+
+                continue;
+            }
             if ($title === '') {
                 $skipped[] = "Fila {$line}: sin título";
 
@@ -226,6 +235,7 @@ class ProductImporter
             }
 
             $seen[$isbn] = true;
+            $lastTitle = $title;
             [$height, $width] = $this->size($get('TAMAÑO'));
 
             $rows[] = [
@@ -257,7 +267,7 @@ class ProductImporter
             throw new InvalidArgumentException('No se encontró la fila de encabezados (ISBN, TÍTULO...).');
         }
 
-        return [$rows, $skipped];
+        return [$rows, $skipped, $variants];
     }
 
     /**
