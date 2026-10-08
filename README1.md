@@ -129,8 +129,8 @@ STRIPE_KEY=
 STRIPE_SECRET=
 STRIPE_WEBHOOK_SECRET=
 
-MERCADOPAGO_ACCESS_TOKEN=
 MERCADOPAGO_PUBLIC_KEY=
+MERCADOPAGO_ACCESS_TOKEN=
 MERCADOPAGO_WEBHOOK_SECRET=
 
 # Shipping & Image Storage settings
@@ -288,7 +288,7 @@ Last updated: 2026-10-08.
 - Cart (guest and logged-in, merged on login, drawer and `/carrito`) where adding to the cart never changes stock; stock will only go down when a payment completes.
 - Requirements taken from the AxisLab report: shipping priced by district with zone minimums, order status workflow with history and e-mail notices, stock deducted only on payment and given back on cancellation, full refund on cancellation, shipping rates managed by the administrator, About and FAQ pages.
 - Checkout (`/checkout`): guest or logged-in, shipping priced by district with "próximamente" for regions not served yet, creates an order pending payment without touching stock; private order page with a signed link and tracking by code and e-mail.
-- Payments through Mercado Pago (Checkout Pro) with signed notifications, the gateway as the source of truth, stock deducted when the payment is confirmed, the first payer keeps the last unit and the other is refunded, automatic refunds on cancellation with an hourly retry, and a local stand-in gateway for development. Tested with simulated answers; not yet run against the real service.
+- Payments through Mercado Pago (Checkout Pro) with signed notifications, the gateway as the source of truth, stock deducted when the payment is confirmed, the first payer keeps the last unit and the other is refunded, automatic refunds on cancellation with an hourly retry, a card form in the shop's own page that works with one-time tokens, so the card number and CVV never reach the server, and a local stand-in gateway for development. Tested with simulated answers; not yet run against the real service.
 - Clickable UI prototype in [`prototype/`](prototype/README.md) (sample data, three profiles).
 
 **Pending**

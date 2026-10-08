@@ -161,10 +161,26 @@ Pasarela principal: **Mercado Pago** (Checkout Pro). El cliente paga en una pág
 
 **Reembolsos.** Cancelar un pedido pagado devuelve el dinero por la pasarela y el pedido pasa a «Reembolsado». Si la pasarela falla, el pedido queda cancelado con el reembolso pendiente y `payments:retry-refunds` (programado cada hora) lo reintenta; para que corra, el servidor necesita el cron de Laravel (`* * * * * php artisan schedule:run`). La petición de reembolso lleva una llave de idempotencia, así que repetirla no devuelve dos veces.
 
+**Pagar con tarjeta dentro de la tienda** (`/pedido/{código}/tarjeta`). El cliente ve un formulario como el de cualquier portal peruano: número de la tarjeta, vencimiento, código de seguridad (CVV), nombres y apellidos del titular, DNI o carné de extranjería, y correo. La dirección y los datos de contacto ya se pidieron en el checkout, y la dirección de entrega no se vuelve a pedir porque Mercado Pago Perú no la usa para validar la tarjeta.
+
+La decisión importante es que **el número de la tarjeta y el CVV nunca llegan a nuestro servidor**. Recibir, procesar o guardar esos datos pone al negocio bajo la norma PCI DSS (una certificación bancaria costosa) y Mercado Pago lo prohíbe sin ella. Por eso los tres campos de la tarjeta los sirve Mercado Pago dentro de nuestra página (campos seguros, mismo aspecto que el resto del formulario), el navegador los convierte en un **token de un solo uso** y a la tienda solo llega ese token más quién paga. Con el token la tienda pide el cobro a Mercado Pago (`POST /v1/payments`, con llave de idempotencia y `binary_mode`, para que el pago se apruebe o rechace en el acto).
+
+Defensas del lado del servidor:
+- Los campos de la tarjeta en el HTML no tienen atributo `name`: aunque algo fallara, el navegador no podría enviarlos.
+- Si una petición trae algo que parezca un número de tarjeta (13 a 19 dígitos que pasan la verificación de Luhn, aunque estén dentro de otro campo) o un campo `card_number`, `cvv` y similares, se rechaza sin guardar el valor.
+- Un solo cobro por pedido a la vez (bloqueo): un doble clic no cobra dos veces. El pedido ya pagado no se puede volver a cobrar.
+- Máximo 5 intentos por pedido y dirección cada 15 minutos, contra el «card testing».
+- Si Mercado Pago rechaza la tarjeta se explica el motivo en español («no tiene fondos», «revisa el CVV», etc.) y el cliente puede intentar de nuevo. Si no responde, se le dice que no vuelva a pagar todavía: si el cobro sí se hizo, la notificación lo confirmará sobre el mismo intento.
+- La última unidad también aquí: gana quien paga primero; antes de cobrar se comprueba que sigan los productos.
+
+Pruebas del navegador: `npm run test:js` ejecuta el `card-form.js` real en un DOM simulado y comprueba, entre otras cosas, que lo que sale hacia la tienda es el token y no el número ni el CVV, y que la tarjeta escrita se borra del formulario. Con `PAYMENT_GATEWAY=fake` el formulario usa campos simples cuyo contenido tampoco sale del navegador; la tarjeta 4111 1111 1111 1111 aprueba y la 4000 0000 0000 0002 rechaza.
+
+**Lo que falta para tarjetas con Mercado Pago de verdad** (el código del navegador contra su SDK no se pudo probar sin credenciales): poner `MERCADOPAGO_PUBLIC_KEY`, comprobar que los campos seguros se monten, que `getPaymentMethods` reconozca la marca, que el token se cree y el cobro se apruebe con una tarjeta de prueba, y que aparezca la marca y el banco emisor. No están hechos: **3D Secure** (si el banco pide verificación el pago queda «en proceso» y se confirma por notificación, pero no hay pantalla de desafío), **cuotas** (siempre 1) y una política **CSP** que limite los scripts de la página de pago.
+
 **Pasarela de prueba local.** Sin credenciales, `PAYMENT_GATEWAY=fake` (el valor del `.env` de desarrollo) manda al cliente a una página local donde se aprueba o rechaza el pago. Sirve para recorrer todo el flujo. Con `PAYMENT_GATEWAY=fake` la aplicación se niega a arrancar en producción.
 
 **Conectar Mercado Pago de verdad** (pendiente; el código se probó con respuestas simuladas, no contra el servicio real):
-1. En Mercado Pago Developers, crear una aplicación y copiar el Access Token (para pruebas, el que empieza con `TEST-`) en `MERCADOPAGO_ACCESS_TOKEN`.
+1. En Mercado Pago Developers, crear una aplicación y copiar el Access Token (para pruebas, el que empieza con `TEST-`) en `MERCADOPAGO_ACCESS_TOKEN` y la Public Key en `MERCADOPAGO_PUBLIC_KEY`.
 2. Configurar el webhook de pagos hacia `https://tu-dominio/webhooks/mercadopago` y copiar su clave secreta en `MERCADOPAGO_WEBHOOK_SECRET`.
 3. Poner `PAYMENT_GATEWAY=mercadopago` y `APP_URL` con la dirección pública y https. En desarrollo hace falta un túnel (por ejemplo ngrok o cloudflared) para que Mercado Pago alcance el webhook y las direcciones de retorno.
 4. Verificar con una compra de prueba: que la preferencia se cree, que vuelva a la tienda, que la notificación llegue y se acepte su firma, que Yape aparezca si se espera, y que un reembolso funcione.
