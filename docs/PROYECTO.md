@@ -28,11 +28,13 @@ Laravel 13 (PHP 8.5 en Sail) · PostgreSQL 18 · Livewire 3 + Volt · Breeze · 
 
 ## Datos
 
-18 tablas. Las del dominio: `addresses`, `categories`, `books`, `book_category`, `carts`, `cart_items`, `orders`, `order_items`, `payments`, y la columna `users.role`.
+19 tablas. Las del dominio: `addresses`, `categories`, `products`, `book_details`, `category_product`, `carts`, `cart_items`, `orders`, `order_items`, `payments`, y la columna `users.role`.
+
+- `products` es la tabla única de productos (libros, separadores, llaveros, figuras). `book_details` (1:1, clave `product_id`) guarda ISBN, autor, editorial, año, páginas y formato solo de los libros.
 
 - Dinero en `decimal(10,2)`, moneda `PEN`, precios con IGV (18 %) incluido.
-- `orders.shipping_address`, `order_items.book_snapshot` y `payments.payload` son **JSONB**: guardan una copia inmutable para que cambios posteriores no alteren pedidos pasados.
-- `orders.user_id` y `order_items.book_id` son nulables: permiten comprar sin cuenta y conservan el historial si se borra un producto.
+- `orders.shipping_address`, `order_items.product_snapshot` y `payments.payload` son **JSONB**: guardan una copia inmutable para que cambios posteriores no alteren pedidos pasados.
+- `orders.user_id` y `order_items.product_id` son nulables: permiten comprar sin cuenta y conservan el historial si se borra un producto.
 - El envío se calcula por peso (`weight_grams`) y dimensiones en mm.
 
 ## Código
@@ -40,8 +42,7 @@ Laravel 13 (PHP 8.5 en Sail) · PostgreSQL 18 · Livewire 3 + Volt · Breeze · 
 - `app/Enums`: `OrderStatus`, `PaymentStatus`, `ShippingStatus`, `UserRole`. Enums con valor `string`.
 - `app/Services`: `InventoryService`, `PaymentService`, `ShippingService` (esqueletos). Sin estado, con inyección de dependencias.
 - `app/Livewire`: `Shop`, `Cart`, `Checkout` (esqueletos).
-- Solo existe el modelo `User`. Faltan los demás modelos, factories y seeders.
-- `InventoryService` referencia `App\Models\Product`, que aún no existe.
+- Modelos: `User`, `Product`, `BookDetail`, `Category`. Faltan `Cart`, `Order`, `Payment`, etc., y las factories y seeders.
 
 ## Diseño
 
@@ -59,11 +60,10 @@ Prototipo navegable en [`prototype/`](../prototype/README.md): abre `prototype/i
 
 ## Siguiente
 
-1. Cambiar `books` por una tabla general `products` con una extensión para los datos del libro (ISBN, páginas, editorial, formato). **Decidido:** una sola tabla de productos.
-2. Modelos, factories y seeders (con los 16 productos del prototipo).
-3. Acceso por roles: Breeze, middleware y policies.
-4. Pasar el prototipo a Blade y Livewire por partes: layout, inicio, catálogo, ficha, carrito, checkout y paneles.
-5. Pasarelas Stripe y Mercado Pago.
+1. Modelos restantes, factories y seeders (con los 16 productos del prototipo).
+2. Acceso por roles: Breeze, middleware y policies.
+3. Pasar el prototipo a Blade y Livewire por partes: layout, inicio, catálogo, ficha, carrito, checkout y paneles.
+4. Pasarelas Stripe y Mercado Pago.
 
 ## Decisiones abiertas
 

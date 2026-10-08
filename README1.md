@@ -278,13 +278,12 @@ Last updated: 2026-10-08.
 
 **Done**
 - Docker/Sail environment on Fedora with PostgreSQL 18.
-- `UserRole` enum and the 10 domain migrations are applied: `users.role`, `addresses`, `categories`, `books`, `book_category`, `carts`, `cart_items`, `orders`, `order_items`, `payments`. Order and payment snapshots use JSONB.
+- `UserRole` enum and the 10 domain migrations are applied: `users.role`, `addresses`, `categories`, `products`, `book_details`, `category_product`, `carts`, `cart_items`, `orders`, `order_items`, `payments`. Order and payment snapshots use JSONB.
 - `UserRole` now has `super_admin`, `admin` and `customer` (the old `logistics` role was removed; its users become `admin`).
 - Clickable UI prototype in [`prototype/`](prototype/README.md) (sample data, three profiles).
 
 **Pending**
-- Replace `books` with a general `products` table plus a book-details extension, so stationery, key rings and figures can be sold too.
-- Eloquent models, factories and seeders. The seeders can reuse the prototype's sample products.
+- Remaining Eloquent models, factories and seeders (`Product`, `BookDetail` and `Category` exist). The seeders can reuse the prototype's sample products.
 - Role-based access, then the Livewire/Blade views based on the prototype, then payment gateways.
 
 ## Next Steps
