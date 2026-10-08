@@ -113,6 +113,18 @@ class Order extends Model
         return URL::temporarySignedRoute('orders.pay', now()->addHours(2), ['order' => $this->tracking_code]);
     }
 
+    /** The card form of this order. Signed, like the pay button. */
+    public function cardUrl(): string
+    {
+        return URL::temporarySignedRoute('orders.card', now()->addHours(2), ['order' => $this->tracking_code]);
+    }
+
+    /** Where the card form sends the token. */
+    public function cardPayUrl(): string
+    {
+        return URL::temporarySignedRoute('orders.card.pay', now()->addHours(2), ['order' => $this->tracking_code]);
+    }
+
     public function statusHistories(): HasMany
     {
         return $this->hasMany(OrderStatusHistory::class)->orderBy('id');

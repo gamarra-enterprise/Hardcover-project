@@ -94,5 +94,6 @@
             </div>
             <div class="wrap line-t muted" style="padding-block: 14px; font-size: 12.5px">© {{ date('Y') }} Hardcover Bookery · Los precios incluyen IGV</div>
         </footer>
+        @stack('scripts')
     </body>
 </html>

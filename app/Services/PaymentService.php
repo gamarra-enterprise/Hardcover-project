@@ -8,10 +8,13 @@ use App\Exceptions\InsufficientStock;
 use App\Exceptions\PaymentNotAllowed;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Payments\CardCharge;
 use App\Payments\GatewayCheckout;
 use App\Payments\GatewayPayment;
 use App\Payments\PaymentGateway;
 use App\Payments\PaymentUnavailable;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -75,6 +78,91 @@ class PaymentService
         $payment->update(['external_reference' => 'pref:'.$checkout->reference]);
 
         return $checkout;
+    }
+
+    /**
+     * Charge a card from the token the browser got from the gateway, and process the answer. The card
+     * number and code never come through here. Only one charge per order runs at a time, so a double
+     * click cannot charge twice.
+     *
+     * @throws PaymentNotAllowed when the order cannot be paid now
+     * @throws PaymentUnavailable when the gateway fails (the charge may still have gone through, and
+     *                            the notification will settle it)
+     */
+    public function payWithCard(Order $order, CardCharge $card): Payment
+    {
+        if (! $this->gateway->supportsCards()) {
+            throw new PaymentNotAllowed('El pago con tarjeta no está disponible por ahora.');
+        }
+
+        $lock = Cache::lock('pay-order:'.$order->id, 60);
+
+        if (! $lock->get()) {
+            throw new PaymentNotAllowed('Estamos procesando tu pago. Espera un momento.');
+        }
+
+        try {
+            // Checked inside the lock: a second click finds the order already paid.
+            $this->assertCanPay($order->refresh());
+
+            $key = (string) Str::uuid();
+
+            DB::transaction(function () use ($order, $key) {
+                $order->payments()->where('status', PaymentStatus::PENDING->value)->update(['status' => PaymentStatus::CANCELLED->value]);
+                $order->payments()->create([
+                    'provider' => $this->gateway->name(),
+                    'external_reference' => 'attempt-'.$key,
+                    'amount' => $order->total,
+                    'currency' => 'PEN',
+                    'status' => PaymentStatus::PENDING,
+                ]);
+            });
+
+            try {
+                $remote = $this->gateway->chargeCard($order->loadMissing('items'), $card, $key);
+            } catch (PaymentUnavailable $e) {
+                Log::error('Card charge of '.$order->tracking_code.' got no answer: '.$e->getMessage());
+
+                throw $e;
+            }
+
+            return $this->apply($order, $remote);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * What is kept of the gateway's answer: enough to audit the payment, without the personal data it
+     * carries (the payer's document and phone, the cardholder). The first six and last four digits of
+     * the card stay, which is what the card industry allows to keep.
+     *
+     * @param  array<string, mixed>  $raw
+     * @return array<string, mixed>
+     */
+    private function forAudit(array $raw): array
+    {
+        Arr::forget($raw, ['payer.identification', 'payer.phone', 'payer.first_name', 'payer.last_name', 'card.cardholder', 'additional_info.payer']);
+
+        return $raw;
+    }
+
+    /** What to tell the customer when the card was rejected, from the gateway's reason. */
+    public function rejectionMessage(Payment $payment): string
+    {
+        return match ($payment->payload['status_detail'] ?? $payment->payload['detail'] ?? null) {
+            'cc_rejected_insufficient_amount' => 'Tu tarjeta no tiene fondos suficientes.',
+            'cc_rejected_bad_filled_card_number' => 'Revisa el número de tu tarjeta.',
+            'cc_rejected_bad_filled_date' => 'Revisa la fecha de vencimiento.',
+            'cc_rejected_bad_filled_security_code' => 'Revisa el código de seguridad (CVV).',
+            'cc_rejected_bad_filled_other' => 'Revisa los datos de tu tarjeta.',
+            'cc_rejected_call_for_authorize' => 'Tu banco necesita que autorices este pago. Llámalo e inténtalo de nuevo.',
+            'cc_rejected_card_disabled' => 'Tu tarjeta está inactiva. Actívala o usa otra.',
+            'cc_rejected_duplicated_payment' => 'Ya hiciste un pago igual hace poco. Revisa tu pedido antes de volver a pagar.',
+            'cc_rejected_high_risk' => 'No pudimos aprobar el pago por seguridad. Prueba con otro medio de pago.',
+            'cc_rejected_max_attempts' => 'Superaste el límite de intentos. Prueba con otra tarjeta.',
+            default => 'Tu banco rechazó el pago. Prueba con otra tarjeta o medio de pago.',
+        };
     }
 
     /**
@@ -203,7 +291,7 @@ class PaymentService
             $payment->fill([
                 'amount' => $remote->amount,
                 'currency' => $remote->currency,
-                'payload' => $remote->raw,
+                'payload' => $this->forAudit($remote->raw),
                 'status' => $remote->status,
             ]);
 

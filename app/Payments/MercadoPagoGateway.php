@@ -27,6 +27,7 @@ class MercadoPagoGateway implements PaymentGateway
         private readonly ?string $accessToken,
         private readonly ?string $webhookSecret,
         private readonly string $baseUrl = 'https://api.mercadopago.com',
+        private readonly ?string $publicKey = null,
     ) {}
 
     public function name(): string
@@ -60,14 +61,53 @@ class MercadoPagoGateway implements PaymentGateway
         return new GatewayCheckout($url, (string) $response['id']);
     }
 
+    public function supportsCards(): bool
+    {
+        // The browser needs the public key to make the token.
+        return filled($this->publicKey) && filled($this->accessToken);
+    }
+
+    public function cardFormConfig(): array
+    {
+        return ['provider' => 'mercadopago', 'public_key' => $this->publicKey];
+    }
+
+    public function chargeCard(Order $order, CardCharge $card, string $idempotencyKey): GatewayPayment
+    {
+        $response = $this->send(fn (PendingRequest $http) => $http
+            // Sending the same charge twice (a double click, a retry) gives back the first result.
+            ->withHeaders(['X-Idempotency-Key' => $idempotencyKey])
+            ->post('/v1/payments', array_filter([
+                'transaction_amount' => (float) $order->total,
+                'token' => $card->token,
+                'description' => 'Pedido '.$order->tracking_code,
+                'installments' => $card->installments,
+                'payment_method_id' => $card->paymentMethodId,
+                'issuer_id' => $card->issuerId !== null && ctype_digit($card->issuerId) ? (int) $card->issuerId : null,
+                'payer' => [
+                    'email' => $card->email,
+                    'identification' => ['type' => $card->identificationType, 'number' => $card->identificationNumber],
+                ],
+                'external_reference' => $order->tracking_code,
+                'notification_url' => route('payments.webhook'),
+                'statement_descriptor' => 'HARDCOVER',
+                // The payment is approved or rejected on the spot, never left "pending" with stock at stake.
+                'binary_mode' => true,
+            ], fn ($value) => $value !== null)));
+
+        return $this->toGatewayPayment($response);
+    }
+
     public function fetchPayment(string $paymentId): ?GatewayPayment
     {
         $response = $this->send(fn (PendingRequest $http) => $http->get('/v1/payments/'.rawurlencode($paymentId)), allowNotFound: true);
 
-        if ($response === null) {
-            return null;
-        }
+        return $response === null ? null : $this->toGatewayPayment($response);
+    }
 
+    /** @param  array<string, mixed>  $response */
+    private function toGatewayPayment(array $response): GatewayPayment
+    {
         return new GatewayPayment(
             id: (string) $response['id'],
             status: $this->status((string) ($response['status'] ?? '')),
@@ -75,6 +115,7 @@ class MercadoPagoGateway implements PaymentGateway
             currency: (string) ($response['currency_id'] ?? 'PEN'),
             orderCode: $response['external_reference'] ?? null,
             raw: $response,
+            detail: $response['status_detail'] ?? null,
         );
     }
 

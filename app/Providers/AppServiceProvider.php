@@ -22,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
                 config('services.mercadopago.access_token'),
                 config('services.mercadopago.webhook_secret'),
                 config('services.mercadopago.base_url'),
+                config('services.mercadopago.public_key'),
             ),
             // The stand-in must never take real orders.
             'fake' => $this->app->isProduction()

@@ -223,13 +223,13 @@ class PaymentFlowTest extends TestCase
     {
         $order = $this->pendingOrder(Product::factory()->create(['price' => 50]));
 
-        $this->get($order->signedUrl())->assertSee('Pagar S/ 50.00')->assertSee('Modo de prueba');
+        $this->get($order->signedUrl())->assertSee('Pagar con tarjeta')->assertSee('Modo de prueba');
 
         Payment::factory()->for($order)->create(['status' => PaymentStatus::PROCESSING]);
-        $this->get($order->signedUrl())->assertDontSee('Pagar S/ 50.00')->assertSee('Estamos verificando tu pago');
+        $this->get($order->signedUrl())->assertDontSee('Pagar con tarjeta')->assertSee('Estamos verificando tu pago');
 
         $order->update(['status' => OrderStatus::CONFIRMED]);
-        $this->get($order->signedUrl())->assertDontSee('Pagar S/ 50.00')->assertDontSee('pendiente de pago');
+        $this->get($order->signedUrl())->assertDontSee('Pagar con tarjeta')->assertDontSee('pendiente de pago');
     }
 
     public function test_the_return_address_checks_its_signature_but_tolerates_what_the_gateway_adds(): void
@@ -304,7 +304,7 @@ class PaymentFlowTest extends TestCase
         $this->assertSame(3, $product->fresh()->stock);
 
         // The order page, the pay button, the gateway's page and the way back.
-        $this->get($order->signedUrl())->assertSee('Pagar S/ 90.00');
+        $this->get($order->signedUrl())->assertSee('Pagar con tarjeta');
         $response = $this->post($order->payUrl());
         $this->assertTrue($response->isRedirect(), 'pay button answered '.$response->status());
         $redirect = $response->headers->get('Location');

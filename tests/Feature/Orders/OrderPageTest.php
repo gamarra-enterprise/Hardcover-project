@@ -46,7 +46,7 @@ class OrderPageTest extends TestCase
             ->assertSee('2 × Crónicas marcianas', false)
             ->assertSee('S/ 142.00')
             ->assertSee('Pedido creado')
-            ->assertSee('Pagar S/ 142.00');
+            ->assertSee('Pagar con tarjeta');
     }
 
     public function test_the_order_page_shows_the_delivery_address(): void

@@ -37,14 +37,21 @@
             @if ($order->payments->contains(fn ($p) => $p->status === \App\Enums\PaymentStatus::PROCESSING))
                 <div class="notice" role="status">Estamos verificando tu pago. Te avisaremos por correo cuando se confirme.</div>
             @else
-                <form class="notice pay-box" method="post" action="{{ $order->payUrl() }}">
-                    @csrf
-                    <span>Tu pedido está pendiente de pago.</span>
-                    <button type="submit" class="btn btn-primary">Pagar {{ Money::format($order->total) }}</button>
+                <div class="notice pay-box">
+                    <span>Tu pedido está pendiente de pago: <b class="num">{{ Money::format($order->total) }}</b>.</span>
+                    <div class="pay-actions">
+                        @if ($canPayWithCard)
+                            <a class="btn btn-primary" href="{{ $order->cardUrl() }}">Pagar con tarjeta</a>
+                        @endif
+                        <form method="post" action="{{ $order->payUrl() }}" style="display: inline">
+                            @csrf
+                            <button type="submit" class="btn {{ $canPayWithCard ? '' : 'btn-primary' }}">Otros medios de pago (Mercado Pago)</button>
+                        </form>
+                    </div>
                     @if (config('shop.payment_gateway') === 'fake')
                         <small class="muted" style="flex-basis: 100%">Modo de prueba: los pagos no son reales.</small>
                     @endif
-                </form>
+                </div>
             @endif
         @elseif ($order->status === OrderStatus::CANCELLED && $order->refund_amount !== null)
             <div class="notice" role="status">Pedido cancelado. Te devolveremos {{ Money::format($order->refund_amount) }}.</div>
@@ -93,10 +100,10 @@
                 <section class="card" style="padding: 22px" aria-labelledby="address-title">
                     <h2 id="address-title" style="font-size: 1.3rem; font-weight: 700; margin-bottom: .6rem">Entrega</h2>
                     <address style="font-style: normal; line-height: 1.6">
-                        <b>{{ $address['recipient_name'] }}</b><br>
-                        {{ $address['line1'] }}@if (! empty($address['line2'])), {{ $address['line2'] }}@endif<br>
-                        {{ $address['city'] }}, {{ $address['state'] }}<br>
-                        <span class="muted">Cel. {{ $address['phone'] }}</span>
+                        <b>{{ $address['recipient_name'] ?? '' }}</b><br>
+                        {{ $address['line1'] ?? '' }}@if (! empty($address['line2'])), {{ $address['line2'] }}@endif<br>
+                        {{ $address['city'] ?? '' }}@if (! empty($address['state'])), {{ $address['state'] }}@endif<br>
+                        <span class="muted">Cel. {{ $address['phone'] ?? '' }}</span>
                     </address>
                 </section>
             </aside>

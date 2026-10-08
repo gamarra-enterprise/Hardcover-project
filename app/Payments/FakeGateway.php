@@ -34,6 +34,40 @@ class FakeGateway implements PaymentGateway
         );
     }
 
+    public function supportsCards(): bool
+    {
+        return true;
+    }
+
+    public function cardFormConfig(): array
+    {
+        return ['provider' => 'fake', 'public_key' => null];
+    }
+
+    /**
+     * The browser's fake tokenizer decides the outcome: a token with "-OK-" is approved and any other
+     * is rejected for lack of funds. Repeating the same key answers with the first payment.
+     */
+    public function chargeCard(Order $order, CardCharge $card, string $idempotencyKey): GatewayPayment
+    {
+        if ($existing = Cache::get('fake-idempotency:'.$idempotencyKey)) {
+            return $this->fetchPayment($existing);
+        }
+
+        $id = 'FAKE-'.strtoupper(Str::random(10));
+        $approved = str_contains($card->token, '-OK-');
+
+        Cache::put($this->key($id), [
+            'status' => $approved ? 'approved' : 'rejected',
+            'detail' => $approved ? 'accredited' : 'cc_rejected_insufficient_amount',
+            'amount' => (string) $order->total,
+            'order_code' => $order->tracking_code,
+        ], now()->addDay());
+        Cache::put('fake-idempotency:'.$idempotencyKey, $id, now()->addDay());
+
+        return $this->fetchPayment($id);
+    }
+
     public function fetchPayment(string $paymentId): ?GatewayPayment
     {
         $data = Cache::get($this->key($paymentId));
@@ -54,6 +88,7 @@ class FakeGateway implements PaymentGateway
             currency: 'PEN',
             orderCode: $data['order_code'],
             raw: $data,
+            detail: $data['detail'] ?? null,
         );
     }
 

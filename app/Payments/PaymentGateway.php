@@ -22,6 +22,24 @@ interface PaymentGateway
      */
     public function createCheckout(Order $order, Payment $payment): GatewayCheckout;
 
+    /** Whether the gateway can take a card typed in the shop's own page (through a token). */
+    public function supportsCards(): bool;
+
+    /**
+     * What the card form in the browser needs to know about the gateway, and nothing secret.
+     *
+     * @return array{provider: string, public_key: ?string}
+     */
+    public function cardFormConfig(): array;
+
+    /**
+     * Charge a card from the one-time token the browser got from the gateway. The idempotency key
+     * makes sending the same charge twice safe: the gateway answers with the first result.
+     *
+     * @throws PaymentUnavailable
+     */
+    public function chargeCard(Order $order, CardCharge $card, string $idempotencyKey): GatewayPayment;
+
     /**
      * The payment as the gateway has it now. The gateway is the source of truth: the shop never
      * trusts the status that arrives in a notification, it asks.
