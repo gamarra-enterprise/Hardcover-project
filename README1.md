@@ -280,6 +280,7 @@ Last updated: 2026-10-08.
 - Docker/Sail environment on Fedora with PostgreSQL 18.
 - `UserRole` enum and the 10 domain migrations are applied: `users.role`, `addresses`, `categories`, `products`, `book_details`, `category_product`, `carts`, `cart_items`, `orders`, `order_items`, `payments`. Order and payment snapshots use JSONB.
 - `UserRole` now has `super_admin`, `admin` and `customer` (the old `logistics` role was removed; its users become `admin`).
+- All Eloquent models, factories and seeders (16 prototype products, 10 categories, one dev account per role).
 - Clickable UI prototype in [`prototype/`](prototype/README.md) (sample data, three profiles).
 
 **Pending**

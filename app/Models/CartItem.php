@@ -7,19 +7,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['product_id', 'isbn_10', 'isbn_13', 'author', 'publisher', 'published_year', 'pages', 'format'])]
-class BookDetail extends Model
+#[Fillable(['cart_id', 'product_id', 'quantity'])]
+class CartItem extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'product_id';
-
-    public $incrementing = false;
-
-    public $timestamps = false;
+    public function cart(): BelongsTo
+    {
+        return $this->belongsTo(Cart::class);
+    }
 
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function lineTotal(): string
+    {
+        return bcmul($this->product->currentPrice(), (string) $this->quantity, 2);
     }
 }

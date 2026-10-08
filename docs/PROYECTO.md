@@ -42,7 +42,9 @@ Laravel 13 (PHP 8.5 en Sail) · PostgreSQL 18 · Livewire 3 + Volt · Breeze · 
 - `app/Enums`: `OrderStatus`, `PaymentStatus`, `ShippingStatus`, `UserRole`. Enums con valor `string`.
 - `app/Services`: `InventoryService`, `PaymentService`, `ShippingService` (esqueletos). Sin estado, con inyección de dependencias.
 - `app/Livewire`: `Shop`, `Cart`, `Checkout` (esqueletos).
-- Modelos: `User`, `Product`, `BookDetail`, `Category`. Faltan `Cart`, `Order`, `Payment`, etc., y las factories y seeders.
+- Modelos: `User`, `Product`, `BookDetail`, `Category`, `Address`, `Cart`, `CartItem`, `Order`, `OrderItem`, `Payment`, todos con factory.
+- Seeders (`sail artisan db:seed`): 10 categorías, los 16 productos del prototipo y tres cuentas de desarrollo (`superadmin@`, `admin@` y `cliente@hardcover.test`, contraseña `password`; no se crean en producción).
+- Pedidos: `OrderItem::valuesFor($producto, $cantidad)` arma la copia del producto; el `subtotal` lleva IGV incluido y `Order::totalsFor()` calcula `tax` (parte de IGV del total) y `total`. Código de seguimiento: `HB-aammdd-NNNN`. El estado del envío usa `OrderStatus`, no hay tabla aparte.
 
 ## Diseño
 
@@ -60,10 +62,9 @@ Prototipo navegable en [`prototype/`](../prototype/README.md): abre `prototype/i
 
 ## Siguiente
 
-1. Modelos restantes, factories y seeders (con los 16 productos del prototipo).
-2. Acceso por roles: Breeze, middleware y policies.
-3. Pasar el prototipo a Blade y Livewire por partes: layout, inicio, catálogo, ficha, carrito, checkout y paneles.
-4. Pasarelas Stripe y Mercado Pago.
+1. Acceso por roles: Breeze, middleware y policies.
+2. Pasar el prototipo a Blade y Livewire por partes: layout, inicio, catálogo, ficha, carrito, checkout y paneles.
+3. Pasarelas Stripe y Mercado Pago.
 
 ## Decisiones abiertas
 

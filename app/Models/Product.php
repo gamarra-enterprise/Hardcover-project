@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 ])]
 class Product extends Model
 {
+    use HasFactory;
+
     /**
      * @return array<string, string>
      */
@@ -33,6 +36,12 @@ class Product extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
+    }
+
+    /** Unit price actually charged (IGV included): the sale price when there is one. */
+    public function currentPrice(): string
+    {
+        return (string) ($this->sale_price ?? $this->price);
     }
 
     public function isBook(): bool
