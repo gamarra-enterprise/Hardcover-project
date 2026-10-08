@@ -133,18 +133,30 @@ Origen: el informe de requerimientos de AxisLab (venta de productos impresos en 
 | Fases «preparación de materiales, en impresión, impreso» y atributos 3D (material, colores, acabado, resistencia) | Descartado: son de impresión 3D. Se adaptó a confirmado, en preparación, enviado y entregado |
 | «Diseños personalizados» | Pospuesto junto con WhatsApp (encargos de libros) |
 
+## Checkout y pedidos
+
+`/checkout` (`App\Livewire\Checkout\Checkout`, `CheckoutService`). Una sola pantalla con tres bloques: datos del cliente, entrega y resumen con el costo de envío que cambia al elegir el distrito. Se puede comprar sin cuenta. El cliente con sesión ve sus datos y su última dirección ya llenos y puede guardar la nueva en su cuenta.
+
+- **Alcance del envío**: por ahora solo Lima Metropolitana y Lima Provincia. Las demás regiones, y las zonas que aún no tienen ningún distrito activo, aparecen como «Próximamente» en el selector y en las preguntas frecuentes. El seeder carga los 128 distritos de Lima Provincia pero activa solo los de la costa (Barranca, Cañete, Huaral y Huaura); los de sierra quedan cargados e inactivos para que el administrador los active. Los códigos ubigeo de Lima Provincia los puse según mi recuerdo de la lista del INEI y conviene cotejarlos una vez con el archivo oficial.
+- **Qué hace «Confirmar pedido»**: crea el pedido en estado «Pendiente de pago» con sus productos, precios y dirección copiados, y vacía el carrito. **No reserva ni descuenta stock**: eso ocurre al confirmarse el pago. Si entre llenar el formulario y confirmar cambió el stock, no se crea nada y se vuelve al carrito con el aviso. Pulsar dos veces no duplica el pedido, y hay un límite de 10 pedidos por hora por cliente o IP.
+- **Celular**: se aceptan espacios, guiones y el prefijo +51; debe quedar en 9 dígitos y empezar con 9.
+- **Ver el pedido** (`/pedido/{código}`): es privado, porque muestra nombre y dirección. Se abre con el enlace firmado que se entrega al confirmar el pedido (vale 14 días), o con la sesión del dueño o del personal. El código solo no basta y cualquier otro intento responde 404, para que no se puedan adivinar pedidos.
+- **Seguimiento sin cuenta** (`/seguimiento`): código + correo del pedido; si cualquiera de los dos falla, la respuesta es la misma, con un límite de 6 intentos por minuto.
+- **Horas**: se guardan en UTC y se muestran en hora de Lima (`APP_DISPLAY_TIMEZONE`).
+- **Pendiente**: la página del pedido avisa que el pago en línea llegará pronto. Mientras no esté el paso de pagos, un pedido creado queda pendiente.
+
 ## Siguiente
 
-1. **Checkout**: dirección, selector de distrito con el costo de envío (`ShippingService`), correo de contacto, creación del pedido con sus copias. No reserva stock.
-2. **Pagos** (Stripe y Mercado Pago, evaluar Yape y Plin): al confirmarse el pago, confirmar el pedido y descontar el stock; decidir qué hacer si `InsufficientStock`; devolver el dinero de las cancelaciones.
-3. **Cuenta del cliente**: «Mis pedidos» con la línea de tiempo y el botón de cancelar; direcciones.
-4. **Panel de administración**: productos y categorías (agregar, editar, ocultar), pedidos con cambio de estado, distritos y tarifas de envío, exportación del catálogo, resumen de ventas.
-5. **Panel de super admin**: usuarios y roles, pasarelas, respaldos, registro de actividad.
-6. Correos, accesibilidad, pruebas de carga y despliegue.
+1. **Pagos** (Stripe y Mercado Pago, evaluar Yape y Plin): al confirmarse el pago, confirmar el pedido y descontar el stock; decidir qué hacer si `InsufficientStock`; devolver el dinero de las cancelaciones.
+2. **Cuenta del cliente**: «Mis pedidos» con la línea de tiempo y el botón de cancelar; direcciones.
+3. **Panel de administración**: productos y categorías (agregar, editar, ocultar), pedidos con cambio de estado, distritos y tarifas de envío, exportación del catálogo, resumen de ventas.
+4. **Panel de super admin**: usuarios y roles, pasarelas, respaldos, registro de actividad.
+5. Correos, accesibilidad, pruebas de carga y despliegue.
 
 ## Decisiones abiertas
 
-- **Alcance del envío**: AxisLab solo enviaba a Lima. El prototipo de Hardcover decía «todo el Perú». Hoy solo hay zonas de Lima; si se enviará a provincias hay que definir las zonas y sus tarifas.
+- **Alcance del envío**: decidido, por ahora solo Lima Metropolitana y Lima Provincia; las otras regiones salen como «Próximamente». Cuando se abran más, hay que definir zonas, tarifas y un selector que no se limite a Lima (hoy el estado guardado en la dirección es siempre «Lima»).
+- **Ubigeos de Lima Provincia**: cotejarlos con el archivo oficial del INEI.
 - **WhatsApp**: pospuesto. Al retomarlo falta el número del negocio y decidir dónde se muestra.
 - Verificación de correo: `User` no implementa `MustVerifyEmail`, así que el middleware `verified` hoy no bloquea a nadie. Activarla afecta a todos los clientes.
 - Logo y colores reales de la marca (hoy el logo es solo texto).
