@@ -11,6 +11,7 @@ use App\Http\Controllers\Payments\PayController;
 use App\Http\Controllers\Payments\ReturnController;
 use App\Http\Controllers\Payments\WebhookController;
 use App\Http\Controllers\ProductController;
+use App\Livewire\Account\Addresses;
 use App\Livewire\Cart\CartPage;
 use App\Livewire\Checkout\Checkout;
 use App\Livewire\Orders\TrackOrder;
@@ -42,6 +43,7 @@ Route::get('dashboard', DashboardController::class)
 
 Route::middleware('auth')->group(function () {
     Route::get('cuenta/pedidos', [AccountOrderController::class, 'index'])->name('account.orders');
+    Route::get('cuenta/direcciones', Addresses::class)->name('account.addresses');
     Route::post('pedido/{order:tracking_code}/cancelar', [AccountOrderController::class, 'cancel'])->name('orders.cancel');
 });
 

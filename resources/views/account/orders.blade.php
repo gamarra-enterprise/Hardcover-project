@@ -4,6 +4,7 @@
 <x-shop-layout title="Mis pedidos">
     <div class="wrap" style="padding-block: 28px 48px">
         <h1 style="font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 800; letter-spacing: -.035em">Mis pedidos</h1>
+        <p style="margin-top: .5rem"><a href="{{ route('account.addresses') }}">Mis direcciones</a> · <a href="{{ route('profile') }}">Mi perfil</a></p>
 
         @if ($orders->isEmpty())
             <p class="muted" style="margin-top: 1rem">Todavía no tienes pedidos. <a href="{{ route('catalog') }}">Ver el catálogo</a>.</p>

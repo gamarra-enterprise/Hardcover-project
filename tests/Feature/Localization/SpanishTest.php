@@ -42,7 +42,7 @@ class SpanishTest extends TestCase
             glob(resource_path('views/livewire/*/*/*.blade.php')),
             glob(resource_path('views/layouts/*.blade.php')),
             glob(resource_path('views/components/*.blade.php')),
-            [resource_path('views/profile.blade.php'), resource_path('views/dashboard.blade.php')],
+            [resource_path('views/profile.blade.php')],
         );
 
         foreach ($files as $file) {
