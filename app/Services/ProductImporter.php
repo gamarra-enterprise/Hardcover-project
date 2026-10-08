@@ -21,6 +21,8 @@ use InvalidArgumentException;
  *   $minGenreCount books become categories (the shop filters).
  * - WEB is the product state: "activo", "oculto" or "sin stock". Any other value (the sheet
  *   currently says "no") is ignored with a warning. "Sin stock" itself comes from the stock count.
+ * - The sheet leaves AUTOR (and often INFO AUTOR) blank when consecutive books share an author
+ *   (merged cells), so a blank author is taken from the previous book that has one.
  * - A row without title that follows a book is another tone of that same book (for example
  *   "Anagrama (azul)" after "Anagrama (gris)"). It is reported as a variant and changes nothing.
  * - Running it again updates the same products instead of duplicating them.
@@ -41,11 +43,11 @@ class ProductImporter
     public function __construct(private readonly int $minGenreCount = 8) {}
 
     /**
-     * @return array{created: int, updated: int, skipped: list<string>, variants: list<string>, warnings: list<string>, filter_genres: list<string>, other_genres: int, covers: int}
+     * @return array{created: int, updated: int, skipped: list<string>, variants: list<string>, inherited: list<string>, warnings: list<string>, filter_genres: list<string>, other_genres: int, covers: int}
      */
     public function import(string $csvPath, bool $dryRun = false, ?string $coversDir = null): array
     {
-        [$rows, $skipped, $variants] = $this->readRows($csvPath);
+        [$rows, $skipped, $variants, $inherited] = $this->readRows($csvPath);
 
         $counts = [];
         foreach ($rows as $row) {
@@ -64,7 +66,7 @@ class ProductImporter
         }
 
         $result = [
-            'created' => 0, 'updated' => 0, 'skipped' => $skipped, 'variants' => $variants, 'warnings' => [],
+            'created' => 0, 'updated' => 0, 'skipped' => $skipped, 'variants' => $variants, 'inherited' => $inherited, 'warnings' => [],
             'filter_genres' => $filterGenres, 'other_genres' => count($counts) - count($filterGenres), 'covers' => 0,
         ];
 
@@ -167,7 +169,7 @@ class ProductImporter
     }
 
     /**
-     * @return array{0: list<array<string, mixed>>, 1: list<string>, 2: list<string>}
+     * @return array{0: list<array<string, mixed>>, 1: list<string>, 2: list<string>, 3: list<string>}
      */
     private function readRows(string $path): array
     {
@@ -180,7 +182,10 @@ class ProductImporter
         $rows = [];
         $skipped = [];
         $variants = [];
+        $inherited = [];
         $lastTitle = null;
+        $lastAuthor = null;
+        $lastBio = null;
         $seen = [];
         $line = 0;
 
@@ -236,18 +241,29 @@ class ProductImporter
 
             $seen[$isbn] = true;
             $lastTitle = $title;
+
+            $author = $get('AUTOR');
+            $bio = $get('INFO AUTOR');
+            if ($author === '' && $lastAuthor !== null) {
+                $author = $lastAuthor;
+                $bio = $bio ?: $lastBio;
+                $inherited[] = "{$title} ← {$author}";
+            } else {
+                $lastAuthor = $author !== '' ? $author : $lastAuthor;
+                $lastBio = $author !== '' ? $bio : $lastBio;
+            }
             [$height, $width] = $this->size($get('TAMAÑO'));
 
             $rows[] = [
                 'isbn' => $isbn,
                 'title' => $title,
-                'author' => $get('AUTOR') ?: 'Anónimo',
+                'author' => $author ?: 'Anónimo',
                 'publisher' => $get('EDITORIAL') ?: null,
                 'pages' => ctype_digit($get('PÁGINAS')) ? (int) $get('PÁGINAS') : null,
                 'format' => $get('FORMATO') !== '' ? Str::ucfirst(mb_strtolower($get('FORMATO'))) : null,
                 'genre_list' => $this->genres($get('GÉNERO')),
                 'description' => $get('INFO LIBRO') ?: null,
-                'author_bio' => $get('INFO AUTOR') ?: null,
+                'author_bio' => $bio ?: null,
                 'price' => $price,
                 'cost' => $this->money($get('PDC')),
                 'stock' => ctype_digit($get('STOCK')) ? (int) $get('STOCK') : 0,
@@ -267,7 +283,7 @@ class ProductImporter
             throw new InvalidArgumentException('No se encontró la fila de encabezados (ISBN, TÍTULO...).');
         }
 
-        return [$rows, $skipped, $variants];
+        return [$rows, $skipped, $variants, $inherited];
     }
 
     /**

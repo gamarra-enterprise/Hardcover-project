@@ -106,6 +106,29 @@ CSV);
         $this->assertNull(Product::where('name', 'Sin medidas')->value('height_mm'));
     }
 
+    public function test_a_blank_author_is_taken_from_the_previous_book(): void
+    {
+        $lines = [
+            'STOCK,TÍTULO,AUTOR,GÉNERO,EDITORIAL,ISBN,PÁGINAS,TAMAÑO,FORMATO,INFO LIBRO,INFO AUTOR,WEB,PDC,PVP',
+            '1,Mujeres,Charles Bukowski,novela,Anagrama,9788433920997,344,20 x 13,tapa blanda,x,Poeta de Los Ángeles.,no,41,82',
+            '1,Cartero,,novela,Anagrama,9788433920638,192,20 x 13,tapa blanda,x,,no,22,45',
+            '1,Otro autor,Alguien Más,novela,Anagrama,9788433921987,336,20 x 13,tapa blanda,x,,no,47,86',
+            '1,Sin dato,,novela,Anagrama,9788433914699,138,20 x 13,tapa blanda,x,,no,41,83',
+        ];
+        $path = $this->dir.'/autores.csv';
+        file_put_contents($path, implode("\n", $lines));
+
+        $result = (new ProductImporter(1))->import($path);
+
+        $cartero = Product::where('name', 'Cartero')->first()->bookDetail;
+        $this->assertSame('Charles Bukowski', $cartero->author);
+        $this->assertSame('Poeta de Los Ángeles.', $cartero->author_bio);
+        // The next author starts a new group and does not inherit the previous biography.
+        $this->assertSame('Alguien Más', Product::where('name', 'Sin dato')->first()->bookDetail->author);
+        $this->assertNull(Product::where('name', 'Sin dato')->first()->bookDetail->author_bio);
+        $this->assertSame(['Cartero ← Charles Bukowski', 'Sin dato ← Alguien Más'], $result['inherited']);
+    }
+
     public function test_a_row_without_title_after_a_book_is_a_variant_and_changes_nothing(): void
     {
         $lines = [

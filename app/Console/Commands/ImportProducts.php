@@ -7,6 +7,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
+use Symfony\Component\Console\Output\OutputInterface;
 
 #[Signature('products:import {file : CSV del inventario} {--covers= : Carpeta con portadas nombradas por ISBN} {--min-genre-count=8 : Libros mínimos para que un género sea filtro} {--dry-run : Muestra el resultado sin guardar}')]
 #[Description('Importa los libros del inventario (CSV) como productos')]
@@ -29,6 +30,13 @@ class ImportProducts extends Command
         ]]);
         $this->line('Géneros como filtro ('.count($result['filter_genres']).'): '.implode(', ', $result['filter_genres']));
         $this->line("Géneros solo como texto: {$result['other_genres']}");
+
+        if ($result['inherited']) {
+            $this->components->info(count($result['inherited']).' libros sin autor en la hoja tomaron el del libro anterior (celdas combinadas).');
+            foreach ($result['inherited'] as $line) {
+                $this->line('  '.$line, verbosity: OutputInterface::VERBOSITY_VERBOSE);
+            }
+        }
 
         foreach ($result['variants'] as $message) {
             $this->components->info($message);
