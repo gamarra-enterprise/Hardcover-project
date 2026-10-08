@@ -50,13 +50,20 @@ Laravel 13 (PHP 8.5 en Sail) · PostgreSQL 18 · Livewire 3 + Volt · Breeze · 
 - Seeders (`sail artisan db:seed`): 10 categorías, los 16 productos del prototipo y tres cuentas de desarrollo (`superadmin@`, `admin@` y `cliente@hardcover.test`, contraseña `password`; no se crean en producción).
 - Pedidos: `OrderItem::valuesFor($producto, $cantidad)` arma la copia del producto; el `subtotal` lleva IGV incluido y `Order::totalsFor()` calcula `tax` (parte de IGV del total) y `total`. Código de seguimiento: `HB-aammdd-NNNN`. El estado del envío usa `OrderStatus`, no hay tabla aparte.
 
+## Catálogo y ficha
+
+- `/catalogo`: componente Livewire `App\Livewire\Shop\ProductList`. Filtros por género (las categorías, con su conteo), búsqueda, precio máximo, solo oferta y solo con stock; orden; 12 por página. Todo vive en la URL (`q`, `genero`, `precio`, `oferta`, `stock`, `orden`, `page`), así que los enlaces se pueden compartir. La cabecera tiene un buscador que envía `q`.
+- La búsqueda ignora tildes y mayúsculas (extensión `unaccent` de PostgreSQL, creada por una migración) y busca en título, SKU, autor, editorial, géneros e ISBN.
+- `/producto/{slug}`: ficha del libro (`ProductController`). Un producto oculto responde 404 al público y se abre para el personal. El botón de compra está deshabilitado hasta el paso del carrito.
+- Pendiente del prototipo: vista rápida de la ficha en una ventana sobre el catálogo.
+
 ## Idioma
 
 La aplicación corre en español (`APP_LOCALE=es`, faker `es_PE`). Las traducciones están en `lang/es/` (validación, autenticación, contraseñas, paginación) y `lang/es.json` (textos de Breeze y correos del framework). `lang/es/validation.php` incluye los nombres en español de los campos (`attributes`); al añadir un campo nuevo a un formulario, agrégalo ahí. El idioma de reserva es `en`. La zona horaria sigue en UTC.
 
 ## Importar el inventario
 
-`sail artisan products:import storage/imports/inventario.csv` (opciones: `--dry-run`, `--covers=carpeta`, `--min-genre-count=8`). Es repetible: actualiza por SKU. El SKU es `HB-` más el ISBN. `TAMAÑO` es alto x ancho en cm (sin profundidad) y el peso queda vacío. Los géneros que aparecen en 8 libros o más son categorías (filtros); el texto completo va en `book_details.genres`. Las portadas se enlazan por ISBN (`{isbn}.jpg|png|webp` dentro de `--covers`). La carpeta `storage/imports/` está fuera de git porque contiene datos del negocio. Una fila sin título justo después de un libro se toma como otro tono del mismo libro (por ejemplo `Anagrama (azul)` tras `Anagrama (gris)`): se informa como variante y no cambia nada. Más adelante se puede modelar como variante con su propio ISBN y stock. La columna `WEB` es el estado del producto (`activo`, `oculto`, `sin stock`); cualquier otro valor (hoy dice `no` en todos los libros) se ignora con un aviso, para no ocultar la tienda por error.
+`sail artisan products:import storage/imports/inventario.csv` (opciones: `--dry-run`, `--covers=carpeta`, `--min-genre-count=8`). Es repetible: actualiza por SKU. El SKU es `HB-` más el ISBN. `TAMAÑO` es alto x ancho en cm (sin profundidad) y el peso queda vacío. Los géneros que aparecen en 8 libros o más son categorías (filtros); el texto completo va en `book_details.genres`. Las portadas se enlazan por ISBN (`{isbn}.jpg|png|webp` dentro de `--covers`). La carpeta `storage/imports/` está fuera de git porque contiene datos del negocio. Si `AUTOR` está en blanco (la hoja combina celdas cuando varios libros seguidos son del mismo autor), el libro toma el autor y su reseña del libro anterior. Una fila sin título justo después de un libro se toma como otro tono del mismo libro (por ejemplo `Anagrama (azul)` tras `Anagrama (gris)`): se informa como variante y no cambia nada. Más adelante se puede modelar como variante con su propio ISBN y stock. La columna `WEB` es el estado del producto (`activo`, `oculto`, `sin stock`); cualquier otro valor (hoy dice `no` en todos los libros) se ignora con un aviso, para no ocultar la tienda por error.
 
 ## Diseño
 
@@ -76,7 +83,7 @@ Prototipo navegable en [`prototype/`](../prototype/README.md): abre `prototype/i
 
 ## Siguiente
 
-1. Pasar el prototipo a Blade y Livewire por partes. Hecho: layout e inicio. Falta: catálogo, ficha, carrito, checkout y paneles.
+1. Pasar el prototipo a Blade y Livewire por partes. Hecho: layout, inicio, catálogo y ficha. Falta: carrito, checkout y paneles.
 2. Pasarelas Stripe y Mercado Pago.
 
 ## Decisiones abiertas

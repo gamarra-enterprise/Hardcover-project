@@ -284,6 +284,7 @@ Last updated: 2026-10-08.
 - Role-based access: `role` middleware, `Gate::before` for the super admin, policies, and `/admin` and `/super` placeholder panels.
 - Public storefront layout and home page (brand cover, header, footer, new-arrivals grid) with placeholder covers.
 - Spanish locale (`lang/es`, `lang/es.json`) and the `products:import` command that loads the books inventory CSV.
+- Catalog with genre, search, price, sale and stock filters, sorting and pagination (`/catalogo`), and the product page (`/producto/{slug}`).
 - Clickable UI prototype in [`prototype/`](prototype/README.md) (sample data, three profiles).
 
 **Pending**
