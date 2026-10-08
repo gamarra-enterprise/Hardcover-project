@@ -282,6 +282,8 @@ Last updated: 2026-10-08.
 - `UserRole` now has `super_admin`, `admin` and `customer` (the old `logistics` role was removed; its users become `admin`).
 - All Eloquent models, factories and seeders (16 prototype products, 10 categories, one dev account per role).
 - Role-based access: `role` middleware, `Gate::before` for the super admin, policies, and `/admin` and `/super` placeholder panels.
+- Public storefront layout and home page (brand cover, header, footer, new-arrivals grid) with placeholder covers.
+- Spanish locale (`lang/es`, `lang/es.json`) and the `products:import` command that loads the books inventory CSV.
 - Clickable UI prototype in [`prototype/`](prototype/README.md) (sample data, three profiles).
 
 **Pending**

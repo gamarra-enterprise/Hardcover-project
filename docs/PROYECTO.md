@@ -32,6 +32,8 @@ Laravel 13 (PHP 8.5 en Sail) · PostgreSQL 18 · Livewire 3 + Volt · Breeze · 
 
 19 tablas. Las del dominio: `addresses`, `categories`, `products`, `book_details`, `category_product`, `carts`, `cart_items`, `orders`, `order_items`, `payments`, y la columna `users.role`.
 
+- Peso y medidas (`weight_grams`, `width_mm`, `height_mm`, `depth_mm`) son opcionales: el inventario real no trae peso ni profundidad, así que el cálculo de envío debe usar un valor por defecto cuando falten. `products.cost_price` (columna PDC) es el costo de compra: solo para el personal, oculto en la serialización. `book_details.genres` guarda el texto completo de géneros y `book_details.author_bio` la reseña del autor.
+- Estado del producto (`products.status`, enum `ProductStatus`): `active`, `hidden` (lo fija el personal) y `out_of_stock`, que el modelo calcula solo a partir del stock al guardar. Los productos sin stock siguen visibles, marcados "Sin stock"; los ocultos no se muestran. Hay que cambiar el stock con `save()` o `update()`, nunca con `decrement()` ni SQL directo, o el estado no se actualiza.
 - `products` es la tabla única de productos (libros, separadores, llaveros, figuras). `book_details` (1:1, clave `product_id`) guarda ISBN, autor, editorial, año, páginas y formato solo de los libros.
 
 - Dinero en `decimal(10,2)`, moneda `PEN`, precios con IGV (18 %) incluido.
@@ -48,7 +50,17 @@ Laravel 13 (PHP 8.5 en Sail) · PostgreSQL 18 · Livewire 3 + Volt · Breeze · 
 - Seeders (`sail artisan db:seed`): 10 categorías, los 16 productos del prototipo y tres cuentas de desarrollo (`superadmin@`, `admin@` y `cliente@hardcover.test`, contraseña `password`; no se crean en producción).
 - Pedidos: `OrderItem::valuesFor($producto, $cantidad)` arma la copia del producto; el `subtotal` lleva IGV incluido y `Order::totalsFor()` calcula `tax` (parte de IGV del total) y `total`. Código de seguimiento: `HB-aammdd-NNNN`. El estado del envío usa `OrderStatus`, no hay tabla aparte.
 
+## Idioma
+
+La aplicación corre en español (`APP_LOCALE=es`, faker `es_PE`). Las traducciones están en `lang/es/` (validación, autenticación, contraseñas, paginación) y `lang/es.json` (textos de Breeze y correos del framework). `lang/es/validation.php` incluye los nombres en español de los campos (`attributes`); al añadir un campo nuevo a un formulario, agrégalo ahí. El idioma de reserva es `en`. La zona horaria sigue en UTC.
+
+## Importar el inventario
+
+`sail artisan products:import storage/imports/inventario.csv` (opciones: `--dry-run`, `--covers=carpeta`, `--min-genre-count=8`). Es repetible: actualiza por SKU. El SKU es `HB-` más el ISBN. `TAMAÑO` es alto x ancho en cm (sin profundidad) y el peso queda vacío. Los géneros que aparecen en 8 libros o más son categorías (filtros); el texto completo va en `book_details.genres`. Las portadas se enlazan por ISBN (`{isbn}.jpg|png|webp` dentro de `--covers`). La carpeta `storage/imports/` está fuera de git porque contiene datos del negocio. La columna `WEB` es el estado del producto (`activo`, `oculto`, `sin stock`); cualquier otro valor (hoy dice `no` en todos los libros) se ignora con un aviso, para no ocultar la tienda por error.
+
 ## Diseño
+
+Layout público en `resources/views/components/shop-layout.blade.php`, estilos en `resources/css/shop.css` (acotados bajo `body.shop`) y el script de la carátula en `resources/js/shop.js`. Componentes en `components/shop/` (`cover`, `product-card`, `icon`). Tras cambiar CSS o JS hay que compilar (`sail npm run build`), porque las vistas leen el manifiesto de Vite. Las portadas usan `Product::imageUrl()` (disco `public`, ruta en `image_path`) y, sin imagen, un marcador tipográfico neutro.
 
 Prototipo navegable en [`prototype/`](../prototype/README.md): abre `prototype/index.html`. Es la referencia visual y de comportamiento; usa datos de ejemplo.
 
@@ -64,7 +76,7 @@ Prototipo navegable en [`prototype/`](../prototype/README.md): abre `prototype/i
 
 ## Siguiente
 
-1. Pasar el prototipo a Blade y Livewire por partes: layout, inicio, catálogo, ficha, carrito, checkout y paneles.
+1. Pasar el prototipo a Blade y Livewire por partes. Hecho: layout e inicio. Falta: catálogo, ficha, carrito, checkout y paneles.
 2. Pasarelas Stripe y Mercado Pago.
 
 ## Decisiones abiertas
