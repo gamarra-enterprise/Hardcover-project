@@ -2,50 +2,43 @@
 
 namespace App\Services;
 
+use App\Enums\CartLineIssue;
+use App\Enums\ProductStatus;
 use App\Models\Product;
-use Exception;
+use Illuminate\Support\Collection;
 
+/**
+ * Stock rules of the shop.
+ *
+ * - Putting a product in a cart never changes its stock and never blocks other buyers: several
+ *   carts can hold the last unit at the same time.
+ * - Stock goes down only when an order's payment is completed. That deduction (atomic, under a
+ *   row lock, and aware that the last unit may already be sold) belongs to the payment step.
+ */
 class InventoryService
 {
-    public function checkAvailability(int $productId, int $quantity): bool
+    /** Units that can be bought right now: the stock of a visible product, otherwise zero. */
+    public function availableFor(Product $product): int
     {
-        // TODO: Implement stock availability check
-        throw new Exception('Availability check not implemented');
+        return match ($product->status) {
+            ProductStatus::ACTIVE => max(0, (int) $product->stock),
+            default => 0,
+        };
     }
 
-    public function reserveStock(int $productId, int $quantity): bool
+    /** What stops a buyer from taking $quantity units of this product, or null if nothing does. */
+    public function issueFor(Product $product, int $quantity): ?CartLineIssue
     {
-        // TODO: Implement stock reservation
-        throw new Exception('Stock reservation not implemented');
-    }
+        if ($product->status === ProductStatus::HIDDEN) {
+            return CartLineIssue::HIDDEN;
+        }
 
-    public function releaseStock(int $productId, int $quantity): void
-    {
-        // TODO: Implement stock release
-        throw new Exception('Stock release not implemented');
-    }
+        $available = $this->availableFor($product);
 
-    public function confirmStockReduction(int $productId, int $quantity): void
-    {
-        // TODO: Implement confirmed stock reduction
-        throw new Exception('Stock reduction not implemented');
-    }
-
-    public function getStockLevel(int $productId): int
-    {
-        // TODO: Implement stock level retrieval
-        throw new Exception('Stock level retrieval not implemented');
-    }
-
-    public function updateStock(int $productId, int $quantity): void
-    {
-        // TODO: Implement stock update
-        throw new Exception('Stock update not implemented');
-    }
-
-    public function getLowStockProducts(int $threshold = 10): array
-    {
-        // TODO: Implement low stock products retrieval
-        throw new Exception('Low stock retrieval not implemented');
+        return match (true) {
+            $available === 0 => CartLineIssue::OUT_OF_STOCK,
+            $quantity > $available => CartLineIssue::EXCEEDS_STOCK,
+            default => null,
+        };
     }
 }

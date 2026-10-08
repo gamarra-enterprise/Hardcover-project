@@ -64,10 +64,8 @@
                     <div class="prose-block">{!! nl2br(e($product->description)) !!}</div>
                 @endif
 
-                {{-- The cart arrives in the next step; until then the purchase button stays disabled. --}}
                 <div style="margin-top: 1.4rem">
-                    <button type="button" class="btn btn-primary" disabled style="opacity: .5; cursor: not-allowed">Añadir al carrito</button>
-                    <p class="muted" style="font-size: 13px; margin-top: .5rem">La compra en línea estará disponible muy pronto.</p>
+                    <livewire:cart.add-to-cart :product="$product" />
                 </div>
 
                 @if ($specs)

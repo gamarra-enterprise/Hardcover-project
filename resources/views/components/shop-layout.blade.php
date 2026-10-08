@@ -16,7 +16,7 @@
         @vite(['resources/css/app.css', 'resources/css/shop.css', 'resources/js/shop.js'])
     </head>
     <body class="shop">
-        <div class="announce">Envío gratis desde S/ 150 · Despachamos en 24 horas</div>
+        <div class="announce">Envío gratis desde S/ {{ number_format(config('shop.free_shipping_from'), 0) }} · Despachamos en 24 horas</div>
 
         <header class="hdr line-b">
             <div class="wrap">
@@ -41,6 +41,9 @@
                             @endif
                             <a class="btn btn-sm" href="{{ route('dashboard') }}" aria-label="Mi cuenta"><x-shop.icon name="user" /></a>
                         @endguest
+                        <button type="button" class="btn btn-sm cart-btn" x-data x-on:click="$dispatch('cart-open')" aria-label="Abrir carrito">
+                            <x-shop.icon name="cart" /><livewire:cart.cart-badge />
+                        </button>
                     </div>
                 </div>
                 <nav class="hdr-nav" aria-label="Principal">
@@ -51,6 +54,15 @@
         </header>
 
         {{ $slot }}
+
+        <div x-data="{ open: false }" x-on:cart-open.window="open = true" x-on:keydown.escape.window="open = false">
+            <div class="drawer-ov" x-show="open" x-cloak x-transition.opacity x-on:click="open = false"></div>
+            <aside class="drawer" role="dialog" aria-modal="true" aria-label="Carrito" x-show="open" x-cloak
+                   x-transition:enter="drawer-enter" x-transition:enter-start="drawer-from" x-transition:leave="drawer-enter" x-transition:leave-end="drawer-from"
+                   x-trap.noscroll="open">
+                <livewire:cart.cart-drawer />
+            </aside>
+        </div>
 
         <div class="wrap" style="margin-top: 80px">
             <div class="trust">

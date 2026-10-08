@@ -3,11 +3,13 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
+use App\Livewire\Cart\CartPage;
 use App\Livewire\Shop\ProductList;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('catalogo', ProductList::class)->name('catalog');
+Route::get('carrito', CartPage::class)->name('cart');
 Route::get('producto/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 
 Route::get('dashboard', DashboardController::class)
