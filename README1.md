@@ -21,9 +21,9 @@ Hardcover is a Laravel-based e-commerce platform specialized in the sale of phys
 | Component | Version | Purpose |
 |-----------|---------|---------|
 | **PHP** | 8.2+ | Core language |
-| **Laravel** | 11.x | Backend framework |
+| **Laravel** | 13.x | Backend framework |
 | **Laravel Sail** | 1.67.x | Docker development environment |
-| **PostgreSQL** | 16+ | Primary database |
+| **PostgreSQL** | 18 | Primary database |
 | **Laravel Breeze** | 2.4.x | Authentication scaffolding |
 | **Livewire** | 3.8.x | Reactive frontend components |
 | **Alpine.js** | 3.x | Lightweight JavaScript interactions |
@@ -71,17 +71,82 @@ app/
 
 - **Docker** and **Docker Compose** (v2.x)
 - **Git** (for version control)
-- **Make** (optional, for convenience commands)
+- **PHP** 8.2+ and **Composer** 2.x (for initial project creation)
+- **Node.js** 20+ and **npm** (for frontend assets)
 
-### 1. Clone and Navigate
+### 1. Create Laravel Project with Sail (PostgreSQL)
 
 ```bash
+# Create project via Composer (alternative to laravel.new installer)
+composer create-project laravel/laravel ~/hardcover --prefer-dist
+
 cd ~/hardcover
+
+# Add Laravel Sail with PostgreSQL support
+composer require laravel/sail --dev
+php artisan sail:install --with=pgsql
 ```
 
-### 2. Start Docker Containers with Sail
+### 2. Install Authentication & Frontend Stack (Breeze + Livewire)
 
 ```bash
+# Install Laravel Breeze with Livewire/Blade stack
+composer require laravel/breeze --dev
+php artisan breeze:install livewire
+
+# This installs: Livewire 3, Alpine.js, Tailwind CSS, Vite
+# And compiles initial assets automatically
+```
+
+### 3. Create Custom Architecture Directories
+
+```bash
+# Business logic directories (not created by Laravel by default)
+mkdir -p app/Enums app/Services app/Livewire/Shop app/Livewire/Cart app/Livewire/Checkout
+
+# Create base Enums (OrderStatus, PaymentStatus, ShippingStatus)
+# Create Service skeletons (PaymentService, InventoryService, ShippingService)
+# Create Livewire component skeletons per domain
+```
+
+### 4. Configure Environment Variables
+
+Copy and configure the `.env` file with PostgreSQL (Sail defaults) and payment gateway placeholders:
+
+```env
+# Database (pre-configured by sail:install --with=pgsql)
+DB_CONNECTION=pgsql
+DB_HOST=pgsql
+DB_PORT=5432
+DB_DATABASE=laravel
+DB_USERNAME=sail
+DB_PASSWORD=password
+
+# Payment Gateways (add your credentials)
+STRIPE_KEY=
+STRIPE_SECRET=
+STRIPE_WEBHOOK_SECRET=
+
+MERCADOPAGO_ACCESS_TOKEN=
+MERCADOPAGO_PUBLIC_KEY=
+MERCADOPAGO_WEBHOOK_SECRET=
+
+# Shipping & Image Storage settings
+SHIPPING_DEFAULT_ORIGIN_ADDRESS=
+COVER_IMAGE_MAX_SIZE=2048
+COVER_IMAGE_ALLOWED_TYPES=jpg,jpeg,png,webp
+COVER_IMAGE_STORAGE_PATH=covers
+```
+
+### 5. Start Docker Containers with Sail
+
+```bash
+# Ensure Docker daemon is running (see Docker Troubleshooting if needed)
+sudo systemctl start docker
+
+# Refresh group membership if "permission denied" on docker.sock
+newgrp docker
+
 # Start all services in detached mode
 ./vendor/bin/sail up -d
 
@@ -89,41 +154,13 @@ cd ~/hardcover
 ./vendor/bin/sail ps
 ```
 
-Expected services:
-- `laravel.test` - PHP 8.2+ application container
-- `pgsql` - PostgreSQL 16 database
-- `redis` - Redis for cache/sessions/queues
-- `mailpit` - Local email testing
-- `selenium` - Browser testing (optional)
+Expected services (see `compose.yaml`):
+- `laravel.test` - PHP application container (Sail)
+- `pgsql` - PostgreSQL 18 database
 
-### 3. Configure Environment
+Redis, Mailpit and Selenium are not enabled yet. Add them with `sail:add` if needed.
 
-The `.env` file is pre-configured for Sail with PostgreSQL:
-
-```env
-DB_CONNECTION=pgsql
-DB_HOST=pgsql
-DB_PORT=5432
-DB_DATABASE=laravel
-DB_USERNAME=sail
-DB_PASSWORD=password
-```
-
-**Add your payment gateway credentials:**
-
-```env
-# Stripe
-STRIPE_KEY=pk_test_xxxxx
-STRIPE_SECRET=sk_test_xxxxx
-STRIPE_WEBHOOK_SECRET=whsec_xxxxx
-
-# Mercado Pago
-MERCADOPAGO_ACCESS_TOKEN=APP_USR-xxxxx
-MERCADOPAGO_PUBLIC_KEY=APP_USR-xxxxx
-MERCADOPAGO_WEBHOOK_SECRET=xxxxx
-```
-
-### 4. Run Database Migrations
+### 6. Run Database Migrations
 
 ```bash
 # Run all migrations
@@ -133,7 +170,7 @@ MERCADOPAGO_WEBHOOK_SECRET=xxxxx
 ./vendor/bin/sail artisan db:seed
 ```
 
-### 5. Compile Frontend Assets
+### 7. Compile Frontend Assets
 
 ```bash
 # Development (with hot reload)
@@ -143,7 +180,7 @@ MERCADOPAGO_WEBHOOK_SECRET=xxxxx
 ./vendor/bin/sail npm run build
 ```
 
-### 6. Verify Installation
+### 8. Verify Installation
 
 1. **Application**: Open http://localhost in your browser
 2. **Database Connection**: Verify via Sail
@@ -233,6 +270,21 @@ Services are **stateless** classes with dependency injection. Use interfaces for
 
 ---
 
+## Current Status
+
+Last updated: 2026-10-08.
+
+**Done**
+- Docker/Sail environment on Fedora with PostgreSQL 18.
+- `UserRole` enum and the 10 domain migrations are applied: `users.role`, `addresses`, `categories`, `books`, `book_category`, `carts`, `cart_items`, `orders`, `order_items`, `payments`. Order and payment snapshots use JSONB.
+- Clickable UI prototype in [`prototype/`](prototype/README.md) (sample data, three profiles).
+
+**Pending**
+- Roles must become `super_admin`, `admin` and `customer` (today: `admin`, `customer`, `logistics`).
+- Replace `books` with a general `products` table plus a book-details extension, so stationery, key rings and figures can be sold too.
+- Eloquent models, factories and seeders. The seeders can reuse the prototype's sample products.
+- Role-based access, then the Livewire/Blade views based on the prototype, then payment gateways.
+
 ## Next Steps
 
 1. **Define Core Models**: `Book`, `Category`, `Author`, `Publisher`, `Order`, `OrderItem`, `Shipment`
@@ -245,6 +297,21 @@ Services are **stateless** classes with dependency injection. Use interfaces for
 ---
 
 ## Troubleshooting
+
+### SELinux (Fedora): `php entered FATAL state` / `Could not open input file: artisan`
+
+SELinux blocks the container from reading the project folder. The volume in `compose.yaml` must carry the `:z` flag:
+
+```yaml
+volumes:
+    - '.:/var/www/html:z'
+```
+
+If it still fails, relabel once with `chcon -R -t container_file_t ~/hardcover`. Always start the stack through `./vendor/bin/sail`, not `docker compose` directly, so `WWWUSER` and `WWWGROUP` are set.
+
+### Port 5173 already in use
+
+Another local project may already be running Vite on 5173. This project forwards Vite on **5174** through `VITE_PORT` in `.env` (documented in `.env.example`). Change it there if 5174 is also taken.
 
 ### Containers won't start
 ```bash
