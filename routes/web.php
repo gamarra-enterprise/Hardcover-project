@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountOrderController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\HomeController as AdminHomeController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\ShippingController as AdminShippingController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\DashboardController;
@@ -65,6 +66,7 @@ Route::view('profile', 'profile')
 // Site management: products, categories, stock and orders. Admin and super admin.
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', AdminHomeController::class)->name('index');
+    Route::get('ventas', SalesController::class)->name('sales');
     Route::get('pedidos', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('pedidos/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('pedidos/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
