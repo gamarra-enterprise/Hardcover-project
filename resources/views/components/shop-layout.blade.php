@@ -51,13 +51,40 @@
                     </div>
                 </div>
                 <nav class="hdr-nav" aria-label="Principal">
-                    <a href="{{ route('catalog') }}" @if (request()->routeIs('catalog', 'products.show')) aria-current="page" @endif>Catálogo</a>
-                    <a href="{{ route('home') }}#novedades">Novedades</a>
+                    <div class="has-mega">
+                        <a href="{{ route('catalog') }}" @if (request()->routeIs('catalog', 'products.show')) aria-current="page" @endif>Catálogo ▾</a>
+                        <div class="mega">
+                            <div>
+                                <div class="label">Libros por género</div>
+                                @foreach ($menuGenres ?? [] as $genre)
+                                    <a href="{{ route('catalog', ['genero' => $genre['slug']]) }}">{{ $genre['name'] }}</a>
+                                @endforeach
+                            </div>
+                            <div>
+                                <div class="label">Papelería y regalos</div>
+                                <a href="{{ route('catalog', ['tipo' => 'papeleria']) }}">Papelería</a>
+                                <a href="{{ route('catalog', ['tipo' => 'accesorio']) }}">Accesorios</a>
+                                <a href="{{ route('catalog', ['tipo' => 'figura']) }}">Figuras</a>
+                            </div>
+                            <div>
+                                <div class="label">Descubre</div>
+                                <a href="{{ route('collection.novedades') }}">Novedades</a>
+                                <a href="{{ route('collection.masvendidos') }}">Más vendidos</a>
+                                <a href="{{ route('collection.ofertas') }}">Ofertas</a>
+                                <a href="{{ route('catalog') }}">Todo el catálogo</a>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{{ route('collection.novedades') }}" @if (request()->routeIs('collection.novedades')) aria-current="page" @endif>Novedades</a>
+                    <a href="{{ route('collection.masvendidos') }}" @if (request()->routeIs('collection.masvendidos')) aria-current="page" @endif>Más vendidos</a>
+                    <a href="{{ route('collection.regalos') }}" @if (request()->routeIs('collection.regalos')) aria-current="page" @endif>Papelería y regalos</a>
                 </nav>
             </div>
         </header>
 
         {{ $slot }}
+
+        <livewire:shop.quick-view />
 
         <div x-data="{ open: false }" x-effect="if (open) $nextTick(() => $el.querySelector('.drawer button')?.focus())" x-on:cart-open.window="open = true" x-on:keydown.escape.window="open = false">
             <div class="drawer-ov" x-show="open" x-cloak x-transition.opacity x-on:click="open = false"></div>

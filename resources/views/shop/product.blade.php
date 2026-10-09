@@ -68,16 +68,20 @@
                     <livewire:cart.add-to-cart :product="$product" />
                 </div>
 
-                @if ($specs)
-                    <section style="margin-top: 2rem" aria-labelledby="specs-title">
-                        <h2 id="specs-title" class="label" style="margin-bottom: .4rem">Ficha técnica</h2>
-                        <table class="specs">
-                            @foreach ($specs as $name => $value)
-                                <tr><th>{{ $name }}</th><td>{{ $value }}</td></tr>
-                            @endforeach
-                        </table>
-                    </section>
-                @endif
+                <div style="margin-top: 1.6rem">
+                    @if ($specs)
+                        <x-shop.accordion title="Ficha técnica" :open="true">
+                            <table class="specs">
+                                @foreach ($specs as $name => $value)
+                                    <tr><th>{{ $name }}</th><td>{{ $value }}</td></tr>
+                                @endforeach
+                            </table>
+                        </x-shop.accordion>
+                    @endif
+                    <x-shop.accordion title="Envío y pago">
+                        El costo de envío depende del distrito y se muestra antes de pagar. Desde S/ {{ number_format(config('shop.free_shipping_from'), 2) }} de compra el envío es gratis. Más detalles en las <a href="{{ route('faq') }}" style="text-decoration: underline">preguntas frecuentes</a>.
+                    </x-shop.accordion>
+                </div>
 
                 @if ($genreLinks->isNotEmpty())
                     <div style="margin-top: 1.4rem; display: flex; gap: .4rem; flex-wrap: wrap">

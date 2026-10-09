@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\AccountOrderController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\ClubController as AdminClubController;
 use App\Http\Controllers\Admin\HomeController as AdminHomeController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\TransferReviewController;
 use App\Http\Controllers\Admin\ShippingController as AdminShippingController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\ClubController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Super\ActivityController as SuperActivityController;
 use App\Http\Controllers\Super\BackupController as SuperBackupController;
@@ -40,6 +42,8 @@ Route::get('novedades', ProductList::class)->defaults('collection', 'novedades')
 Route::get('mas-vendidos', ProductList::class)->defaults('collection', 'masvendidos')->name('collection.masvendidos');
 Route::get('ofertas', ProductList::class)->defaults('collection', 'ofertas')->name('collection.ofertas');
 Route::get('regalos', ProductList::class)->defaults('collection', 'regalos')->name('collection.regalos');
+Route::post('club', [ClubController::class, 'subscribe'])->middleware('throttle:5,1')->name('club.subscribe');
+Route::get('club/baja/{subscriber}', [ClubController::class, 'unsubscribe'])->name('club.unsubscribe');
 Route::get('carrito', CartPage::class)->name('cart');
 Route::get('checkout', Checkout::class)->name('checkout');
 Route::get('seguimiento', TrackOrder::class)->name('orders.track');
@@ -88,6 +92,8 @@ Route::middleware(['auth', 'verified', 'role:admin', 'two-factor'])->prefix('adm
     Route::post('pagos/{payment}/confirmar', [TransferReviewController::class, 'confirm'])->name('payments.confirm');
     Route::post('pagos/{payment}/rechazar', [TransferReviewController::class, 'reject'])->name('payments.reject');
     Route::post('pagos/{payment}/reembolsado', [TransferReviewController::class, 'refunded'])->name('payments.refunded');
+    Route::get('club', [AdminClubController::class, 'index'])->name('club.index');
+    Route::get('club/exportar', [AdminClubController::class, 'export'])->name('club.export');
     Route::get('ventas', SalesController::class)->name('sales');
     Route::get('pedidos', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('pedidos/{order}', [AdminOrderController::class, 'show'])->name('orders.show');

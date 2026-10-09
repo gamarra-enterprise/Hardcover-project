@@ -6,6 +6,7 @@ use App\Models\BookDetail;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -25,6 +26,15 @@ class QueryCountTest extends TestCase
         return $n;
     }
 
+    /** Queries of the home and the catalog once the menu cache is warm, so only the pages themselves are counted. */
+    private function measure(): array
+    {
+        Cache::flush();
+        $this->get('/')->assertOk();
+
+        return [$this->queries('/'), $this->queries('/catalogo')];
+    }
+
     private function seedCatalog(int $products): void
     {
         $category = Category::factory()->create();
@@ -36,11 +46,11 @@ class QueryCountTest extends TestCase
 
     public function test_catalog_and_home_do_not_query_per_product(): void
     {
-        $this->seedCatalog(3);
-        $small = [$this->queries('/'), $this->queries('/catalogo')];
+        $this->seedCatalog(5);
+        $small = $this->measure();
 
         $this->seedCatalog(12);
-        $big = [$this->queries('/'), $this->queries('/catalogo')];
+        $big = $this->measure();
 
         $this->assertSame($small, $big, 'home / catalog queries grew with the number of products: '.json_encode([$small, $big]));
     }

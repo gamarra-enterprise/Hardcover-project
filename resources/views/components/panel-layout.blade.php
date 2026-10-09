@@ -26,6 +26,7 @@
                 <a class="p-link" href="{{ route('admin.products.index') }}" @if (request()->routeIs('admin.products.*')) aria-current="page" @endif>Productos</a>
                 <a class="p-link" href="{{ route('admin.categories.index') }}" @if (request()->routeIs('admin.categories.*')) aria-current="page" @endif>Categorías</a>
 
+                <a class="p-link" href="{{ route('admin.club.index') }}" @if (request()->routeIs('admin.club.*')) aria-current="page" @endif>Club de lectores</a>
                 <a class="p-link" href="{{ route('admin.shipping.index') }}" @if (request()->routeIs('admin.shipping.*')) aria-current="page" @endif>Envíos</a>
 
                 @if (auth()->user()->role === \App\Enums\UserRole::SUPER_ADMIN)

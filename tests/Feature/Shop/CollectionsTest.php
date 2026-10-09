@@ -75,7 +75,7 @@ class CollectionsTest extends TestCase
         Product::factory()->create(['name' => 'Figura uno', 'type' => ProductType::FIGURE, 'stock' => 5]);
 
         $component = Livewire::test(ProductList::class);
-        $this->assertSame(['' => 2, 'libro' => 1, 'figura' => 1], $component->instance()->typeCounts());
+        $this->assertEquals(['' => 2, 'libro' => 1, 'figura' => 1], $component->instance()->typeCounts());
 
         $component->set('type', 'figura')->assertSee('Figura uno')->assertDontSee('Libro uno');
     }

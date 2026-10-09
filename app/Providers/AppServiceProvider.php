@@ -7,7 +7,10 @@ use App\Models\User;
 use App\Payments\FakeGateway;
 use App\Payments\MercadoPagoGateway;
 use App\Payments\PaymentGateway;
+use App\Models\Category;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -37,6 +40,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // The menu of the shop lists the genres that have products.
+        View::composer('components.shop-layout', fn ($view) => $view->with('menuGenres', \App\Support\MenuGenres::all()));
+
         // The super admin has full control over every resource, so no policy can deny them.
         Gate::before(fn (User $user) => $user->role === UserRole::SUPER_ADMIN ? true : null);
     }
