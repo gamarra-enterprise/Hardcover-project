@@ -40,6 +40,10 @@
                                 <a href="{{ route('super.index') }}">Super admin</a>
                             @endif
                             <a class="btn btn-sm" href="{{ route('account.orders') }}" aria-label="Mis pedidos"><x-shop.icon name="user" /></a>
+                            <form method="POST" action="{{ route('logout') }}" style="display: inline">
+                                @csrf
+                                <button type="submit" class="btn btn-sm">Salir</button>
+                            </form>
                         @endguest
                         <button type="button" class="btn btn-sm cart-btn" x-data x-on:click="$dispatch('cart-open')" aria-label="Abrir carrito">
                             <x-shop.icon name="cart" /><livewire:cart.cart-badge />

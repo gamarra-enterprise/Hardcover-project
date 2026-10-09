@@ -54,7 +54,7 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_navigation_menu_can_be_rendered(): void
+    public function test_profile_renders_with_the_shop_header_and_a_logout_button(): void
     {
         $user = User::factory()->create();
 
@@ -64,7 +64,15 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSeeVolt('layout.navigation');
+            ->assertSee('Mi perfil')
+            ->assertSee(route('logout'), false);
+    }
+
+    public function test_posting_to_logout_ends_the_session(): void
+    {
+        $this->actingAs(User::factory()->create())->post(route('logout'))->assertRedirect(route('home'));
+
+        $this->assertGuest();
     }
 
     public function test_users_can_logout(): void

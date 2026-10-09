@@ -37,6 +37,8 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
+    <h1>Crear cuenta</h1>
+
     <form wire:submit="register">
         <!-- Name -->
         <div>
