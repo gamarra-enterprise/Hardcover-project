@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountOrderController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\ClubController as AdminClubController;
 use App\Http\Controllers\Admin\HomeController as AdminHomeController;
+use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\TransferReviewController;
@@ -92,6 +93,8 @@ Route::middleware(['auth', 'verified', 'role:admin', 'two-factor'])->prefix('adm
     Route::post('pagos/{payment}/confirmar', [TransferReviewController::class, 'confirm'])->name('payments.confirm');
     Route::post('pagos/{payment}/rechazar', [TransferReviewController::class, 'reject'])->name('payments.reject');
     Route::post('pagos/{payment}/reembolsado', [TransferReviewController::class, 'refunded'])->name('payments.refunded');
+    Route::get('inventario', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::patch('inventario/{product}', [InventoryController::class, 'update'])->name('inventory.update');
     Route::get('club', [AdminClubController::class, 'index'])->name('club.index');
     Route::get('club/exportar', [AdminClubController::class, 'export'])->name('club.export');
     Route::get('ventas', SalesController::class)->name('sales');
