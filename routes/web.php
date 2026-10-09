@@ -15,6 +15,7 @@ use App\Http\Controllers\Super\UserController as SuperUserController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\Payments\CardPaymentController;
 use App\Http\Controllers\Payments\FakeGatewayController;
 use App\Http\Controllers\Payments\PayController;
@@ -53,6 +54,12 @@ Route::get('dashboard', DashboardController::class)
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('seguridad', [TwoFactorController::class, 'show'])->name('security.show');
+    Route::post('seguridad/activar', [TwoFactorController::class, 'start'])->name('security.start');
+    Route::post('seguridad/confirmar', [TwoFactorController::class, 'confirm'])->middleware('throttle:10,1')->name('security.confirm');
+    Route::delete('seguridad', [TwoFactorController::class, 'disable'])->middleware('throttle:10,1')->name('security.disable');
+    Route::get('dos-pasos', [TwoFactorController::class, 'challenge'])->name('two-factor.challenge');
+    Route::post('dos-pasos', [TwoFactorController::class, 'verify'])->name('two-factor.verify');
     Route::post('salir', function (Logout $logout) {
         $logout();
 
@@ -68,7 +75,7 @@ Route::view('profile', 'profile')
     ->name('profile');
 
 // Site management: products, categories, stock and orders. Admin and super admin.
-Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin', 'two-factor'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', AdminHomeController::class)->name('index');
     Route::get('ventas', SalesController::class)->name('sales');
     Route::get('pedidos', [AdminOrderController::class, 'index'])->name('orders.index');
@@ -84,7 +91,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 });
 
 // Users and roles, payment gateways, shipping rates and activity. Super admin only.
-Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super')->name('super.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:super_admin', 'two-factor'])->prefix('super')->name('super.')->group(function () {
     Route::view('/', 'super.index')->name('index');
     Route::get('usuarios', [SuperUserController::class, 'index'])->name('users.index');
     Route::patch('usuarios/{user}/rol', [SuperUserController::class, 'updateRole'])->name('users.role');
@@ -93,6 +100,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super')->na
     Route::post('respaldos', [SuperBackupController::class, 'store'])->middleware('throttle:6,1')->name('backups.store');
     Route::get('respaldos/{name}', [SuperBackupController::class, 'download'])->name('backups.download');
     Route::delete('respaldos/{name}', [SuperBackupController::class, 'destroy'])->name('backups.destroy');
+    Route::delete('usuarios/{user}/dos-pasos', [SuperUserController::class, 'resetTwoFactor'])->name('users.2fa-reset');
     Route::get('actividad', SuperActivityController::class)->name('activity');
 });
 

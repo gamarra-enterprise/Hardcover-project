@@ -30,7 +30,7 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache &&
 - [ ] Cola de trabajos: hoy los correos salen en la misma petición. Si se vuelve lento, pasar a `QUEUE_CONNECTION=database` y un worker.
 
 ## Antes de abrir
-- [ ] Autenticación en dos pasos para administradores (recomendación del informe; todavía no está hecha).
+- [ ] Cada administrador activa la verificación en dos pasos en `/seguridad` (hecha; en producción es obligatoria para entrar al panel, `SHOP_REQUIRE_2FA`). Guardar los códigos de recuperación. Si alguien pierde ambos, el super administrador la restablece en `/super/usuarios`.
 - [ ] Verificación de correo de clientes: decidir si se activa (`MustVerifyEmail`).
 - [ ] Textos reales de envíos, devoluciones, logo y colores (siguen siendo de ejemplo).
 - [ ] Probar un respaldo y su restauración en otra máquina.

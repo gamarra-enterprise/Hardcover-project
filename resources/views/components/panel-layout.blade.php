@@ -38,6 +38,7 @@
                 @endif
 
                 <div class="p-foot">
+                    <a href="{{ route('security.show') }}">Seguridad (2 pasos)</a>
                     <a href="{{ route('home') }}">Ver la tienda</a>
                     <span>{{ auth()->user()->name }}</span>
                     <form method="POST" action="{{ route('logout') }}">

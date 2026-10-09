@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: ['webhooks/*']);
 
         $middleware->alias([
+            'two-factor' => \App\Http\Middleware\EnsureTwoFactor::class,
             'role' => EnsureUserHasRole::class,
         ]);
     })

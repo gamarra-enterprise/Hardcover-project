@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Services\TwoFactor;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,5 +69,20 @@ class UserController extends Controller
         ActivityLog::record('user.role_changed', "Rol de {$user->email}: {$changed->value} → {$new->value}", ['user_id' => $user->id, 'from' => $changed->value, 'to' => $new->value]);
 
         return back()->with('notice', "Rol de {$user->name} actualizado.");
+    }
+
+    /** For staff who lost their phone and their recovery codes. They set it up again on their next sign-in. */
+    public function resetTwoFactor(Request $request, User $user, TwoFactor $twoFactor): RedirectResponse
+    {
+        Gate::authorize('changeRole', $user);
+
+        if ($request->user()->is($user)) {
+            return back()->with('error', 'Tu propia verificación se gestiona desde Seguridad.');
+        }
+
+        $twoFactor->disable($user);
+        ActivityLog::record('security.2fa_reset', "Restableció la verificación en dos pasos de {$user->email}", ['user_id' => $user->id]);
+
+        return back()->with('notice', "Verificación en dos pasos de {$user->name} restablecida.");
     }
 }

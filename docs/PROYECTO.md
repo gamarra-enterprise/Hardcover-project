@@ -201,6 +201,7 @@ Pruebas del navegador: `npm run test:js` ejecuta el `card-form.js` real en un DO
 - **Credenciales de Mercado Pago**: sin ellas la integración real no se ha podido probar. Hay que crear la aplicación, obtener el token de prueba y el secreto del webhook, y recorrer la lista de «Conectar Mercado Pago de verdad».
 - **Transferencia bancaria manual** como segundo medio de pago.
 - **WhatsApp**: pospuesto. Al retomarlo falta el número del negocio y decidir dónde se muestra.
+- **Verificación en dos pasos** (hecha, solo personal): `/seguridad`, códigos TOTP de una app de autenticación (`pragmarx/google2fa`), QR con `chillerlan/php-qrcode`, 8 códigos de recuperación de un solo uso, un código no se reutiliza, 5 intentos por minuto, secreto cifrado. `SHOP_REQUIRE_2FA` (activo por defecto en producción) obliga al personal a activarla; quien la tiene activa siempre pasa el desafío. El super administrador puede restablecerla a otra persona.
 - Verificación de correo: `User` no implementa `MustVerifyEmail`, así que el middleware `verified` hoy no bloquea a nadie. Activarla afecta a todos los clientes.
 - Logo y colores reales de la marca (hoy el logo es solo texto).
 - Políticas reales de envío y devoluciones: la barra superior («Despachamos en 24 horas») y la franja de confianza («Recojo en tienda», «Envoltorio de regalo») siguen siendo texto de ejemplo del prototipo.

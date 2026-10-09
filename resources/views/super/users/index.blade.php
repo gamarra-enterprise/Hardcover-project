@@ -42,6 +42,12 @@
                                     </select>
                                     <button class="p-btn">Guardar</button>
                                 </form>
+                                @if ($user->hasTwoFactor())
+                                    <form method="POST" action="{{ route('super.users.2fa-reset', $user) }}" style="margin-top: 6px" onsubmit="return confirm('¿Restablecer la verificación en dos pasos de {{ addslashes($user->name) }}?')">
+                                        @csrf @method('DELETE')
+                                        <button class="p-btn">Restablecer 2 pasos</button>
+                                    </form>
+                                @endif
                             @endif
                         </td>
                     </tr>
