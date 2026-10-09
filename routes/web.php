@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AccountOrderController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\HomeController as AdminHomeController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
@@ -65,6 +67,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('pedidos', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('pedidos/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('pedidos/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
+    Route::resource('productos', AdminProductController::class)->parameters(['productos' => 'product'])->names('products')->except(['show', 'destroy']);
+    Route::resource('categorias', AdminCategoryController::class)->parameters(['categorias' => 'category'])->names('categories')->except(['show']);
 });
 
 // Users and roles, payment gateways, shipping rates and activity. Super admin only.

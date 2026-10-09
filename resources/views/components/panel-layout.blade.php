@@ -22,6 +22,9 @@
                 <a class="p-link" href="{{ route('admin.index') }}" @if (request()->routeIs('admin.index')) aria-current="page" @endif>Resumen</a>
                 <a class="p-link" href="{{ route('admin.orders.index') }}" @if (request()->routeIs('admin.orders.*')) aria-current="page" @endif>Pedidos</a>
 
+                <a class="p-link" href="{{ route('admin.products.index') }}" @if (request()->routeIs('admin.products.*')) aria-current="page" @endif>Productos</a>
+                <a class="p-link" href="{{ route('admin.categories.index') }}" @if (request()->routeIs('admin.categories.*')) aria-current="page" @endif>Categorías</a>
+
                 @if (auth()->user()->role === \App\Enums\UserRole::SUPER_ADMIN)
                     <div class="p-group">Sistema</div>
                     <a class="p-link" href="{{ route('super.index') }}" @if (request()->routeIs('super.*')) aria-current="page" @endif>Super admin</a>
