@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Super\ActivityController as SuperActivityController;
 use App\Http\Controllers\Super\BackupController as SuperBackupController;
+use App\Http\Controllers\Super\GatewayController as SuperGatewayController;
 use App\Http\Controllers\Super\UserController as SuperUserController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
@@ -87,6 +88,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super')->na
     Route::view('/', 'super.index')->name('index');
     Route::get('usuarios', [SuperUserController::class, 'index'])->name('users.index');
     Route::patch('usuarios/{user}/rol', [SuperUserController::class, 'updateRole'])->name('users.role');
+    Route::get('pasarelas', SuperGatewayController::class)->name('gateways');
     Route::get('respaldos', [SuperBackupController::class, 'index'])->name('backups.index');
     Route::post('respaldos', [SuperBackupController::class, 'store'])->middleware('throttle:6,1')->name('backups.store');
     Route::get('respaldos/{name}', [SuperBackupController::class, 'download'])->name('backups.download');
