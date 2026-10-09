@@ -35,7 +35,7 @@ class OrderStatusChanged extends Notification
             $mail->line('Te devolveremos '.Money::format($this->order->refund_amount).' por el mismo medio de pago.');
         }
 
-        return $mail->line('Guarda este código para consultar tu pedido.');
+        return $mail->action('Ver mi pedido', $this->order->signedUrl())->line('Guarda este código para consultar tu pedido.');
     }
 
     private function detail(): string

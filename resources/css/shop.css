@@ -33,7 +33,7 @@ body.shop {
 }
 .shop h1, .shop h2, .shop h3 { font-family: var(--f-display); text-wrap: balance; letter-spacing: -0.015em; line-height: 1.1; }
 .shop a { color: inherit; }
-.shop :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.shop :focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
 .shop .wrap { max-width: 1180px; margin-inline: auto; padding-inline: 16px; }
 .shop .muted { color: var(--muted); }
 .shop .num { font-variant-numeric: tabular-nums; }
@@ -177,7 +177,7 @@ body.shop {
 .shop .switch span::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--bg); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transition: 0.15s; }
 .shop .switch input:checked + span { background: var(--accent); border-color: var(--accent); }
 .shop .switch input:checked + span::after { transform: translateX(18px); }
-.shop .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.shop .switch input:focus-visible + span { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
 .shop .achips { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; min-height: 36px; margin-top: 14px; }
 .shop .achip { padding: 0.3rem 0.8rem; border-radius: 999px; border: 1px solid var(--ink); background: var(--bg); font-size: 13px; font-weight: 600; cursor: pointer; }
 .shop .achip:hover { background: var(--ink); color: var(--bg); }
@@ -280,7 +280,7 @@ body.shop {
 
 /* card form: the gateway's secure fields look like our inputs */
 .shop .secure-field { height: 46px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); padding: 0 12px; display: flex; align-items: center; overflow: hidden; }
-.shop .secure-field:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.shop .secure-field:focus-within { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
 .shop .secure-field iframe { width: 100%; }
 .shop .brand-tag { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent-deep); pointer-events: none; }
 .shop .pay-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }

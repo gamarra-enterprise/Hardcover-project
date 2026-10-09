@@ -7,7 +7,9 @@ use App\Models\Address;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
+use App\Notifications\OrderPlaced;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Turns the visitor's cart into an order waiting for payment. It does not touch the stock: that
@@ -72,7 +74,7 @@ class CheckoutService
             'zone' => $district->zone->name,
         ];
 
-        return DB::transaction(function () use ($summary, $totals, $address, $data, $user) {
+        $order = DB::transaction(function () use ($summary, $totals, $address, $data, $user) {
             $order = Order::create([
                 'user_id' => $user?->id,
                 'email' => $data['email'],
@@ -92,6 +94,17 @@ class CheckoutService
 
             return $order;
         });
+
+        // A mail problem must never undo an order that is already saved.
+        try {
+            if ($email = $order->contactEmail()) {
+                Notification::route('mail', $email)->notify(new OrderPlaced($order->load('items')));
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return $order;
     }
 
     /** Keep the delivery address in the customer's account, once. The first one becomes the default. */

@@ -12,8 +12,10 @@ use App\Models\Product;
 use App\Models\ShippingDistrict;
 use App\Models\ShippingZone;
 use App\Models\User;
+use App\Notifications\OrderPlaced;
 use App\Services\CartService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -235,6 +237,23 @@ class CheckoutTest extends TestCase
         $this->assertSame(7, $product->fresh()->stock);
         $this->assertNull($order->stock_deducted_at);
         $this->assertSame(0, app(CartService::class)->count());
+    }
+
+    public function test_the_customer_gets_an_email_with_the_items_total_and_a_link_to_the_order(): void
+    {
+        Notification::fake();
+        $this->cartWith(1, ['price' => 40, 'stock' => 7]);
+
+        $this->fill(Livewire::test(Checkout::class))->call('place');
+
+        $order = Order::firstOrFail();
+        Notification::assertSentOnDemand(OrderPlaced::class, function (OrderPlaced $n, array $channels, object $notifiable) use ($order) {
+            $mail = $n->toMail($notifiable);
+
+            return $notifiable->routes['mail'] === 'ana@example.com'
+                && str_contains($mail->subject, $order->tracking_code)
+                && str_starts_with($mail->actionUrl, route('orders.show', $order).'?') && str_contains($mail->actionUrl, 'signature=');
+        });
     }
 
     public function test_the_order_keeps_its_copy_when_the_product_changes_afterwards(): void
