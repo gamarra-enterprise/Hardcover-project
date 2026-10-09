@@ -25,6 +25,8 @@
                 <a class="p-link" href="{{ route('admin.products.index') }}" @if (request()->routeIs('admin.products.*')) aria-current="page" @endif>Productos</a>
                 <a class="p-link" href="{{ route('admin.categories.index') }}" @if (request()->routeIs('admin.categories.*')) aria-current="page" @endif>Categorías</a>
 
+                <a class="p-link" href="{{ route('admin.shipping.index') }}" @if (request()->routeIs('admin.shipping.*')) aria-current="page" @endif>Envíos</a>
+
                 @if (auth()->user()->role === \App\Enums\UserRole::SUPER_ADMIN)
                     <div class="p-group">Sistema</div>
                     <a class="p-link" href="{{ route('super.index') }}" @if (request()->routeIs('super.*')) aria-current="page" @endif>Super admin</a>

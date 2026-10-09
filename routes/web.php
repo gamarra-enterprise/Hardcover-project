@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountOrderController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\HomeController as AdminHomeController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\ShippingController as AdminShippingController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
@@ -68,6 +69,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('pedidos/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('pedidos/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
     Route::resource('productos', AdminProductController::class)->parameters(['productos' => 'product'])->names('products')->except(['show', 'destroy']);
+    Route::get('envios', [AdminShippingController::class, 'index'])->name('shipping.index');
+    Route::put('envios/zonas/{zone}', [AdminShippingController::class, 'updateZone'])->name('shipping.zones.update');
+    Route::post('envios/zonas/{zone}/distritos', [AdminShippingController::class, 'storeDistrict'])->name('shipping.districts.store');
+    Route::put('envios/distritos/{district}', [AdminShippingController::class, 'updateDistrict'])->name('shipping.districts.update');
     Route::resource('categorias', AdminCategoryController::class)->parameters(['categorias' => 'category'])->names('categories')->except(['show']);
 });
 

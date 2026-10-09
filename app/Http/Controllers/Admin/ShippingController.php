@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Exceptions\ShippingCostBelowMinimum;
+use App\Http\Controllers\Controller;
+use App\Models\ShippingDistrict;
+use App\Models\ShippingZone;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+
+/**
+ * Shipping rates: the minimum of each zone and the cost of each district. The rule that a
+ * district never costs less than its zone's minimum lives in the models; here it only shows as a message.
+ */
+class ShippingController extends Controller
+{
+    public function index(): View
+    {
+        Gate::authorize('viewAny', ShippingZone::class);
+
+        $zones = ShippingZone::with(['districts' => fn ($q) => $q->orderBy('name')])->orderBy('position')->get();
+
+        return view('admin.shipping.index', ['zones' => $zones, 'freeFrom' => config('shop.free_shipping_from')]);
+    }
+
+    public function updateZone(Request $request, ShippingZone $zone): RedirectResponse
+    {
+        Gate::authorize('update', $zone);
+
+        $data = $request->validate(['min_cost' => ['required', 'numeric', 'min:0', 'max:9999.99']]);
+
+        $zone->update(['min_cost' => $data['min_cost'], 'is_active' => $request->boolean('is_active')]);
+
+        return back()->with('notice', 'Zona actualizada: '.$zone->name.'.');
+    }
+
+    public function storeDistrict(Request $request, ShippingZone $zone): RedirectResponse
+    {
+        Gate::authorize('create', ShippingDistrict::class);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'ubigeo' => ['required', 'digits:6', 'unique:shipping_districts,ubigeo'],
+            'cost' => ['required', 'numeric', 'min:0', 'max:9999.99'],
+        ]);
+
+        try {
+            $zone->districts()->create($data + ['is_active' => true]);
+        } catch (ShippingCostBelowMinimum $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return back()->with('notice', 'Distrito agregado.');
+    }
+
+    public function updateDistrict(Request $request, ShippingDistrict $district): RedirectResponse
+    {
+        Gate::authorize('update', $district);
+
+        $data = $request->validate(['cost' => ['required', 'numeric', 'min:0', 'max:9999.99']]);
+
+        try {
+            $district->update(['cost' => $data['cost'], 'is_active' => $request->boolean('is_active')]);
+        } catch (ShippingCostBelowMinimum $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('notice', 'Tarifa de '.$district->name.' guardada.');
+    }
+}
