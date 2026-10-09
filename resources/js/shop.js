@@ -68,3 +68,56 @@ document.addEventListener('click', (e) => {
     // A drag that ends over a card must not open it.
     document.addEventListener('click', (e) => { if (dragged) { e.stopPropagation(); e.preventDefault(); } }, true);
 })();
+
+// Scroll-linked reveal: every .rv block fades and slides in as it enters the screen, and back out as it leaves,
+// following the scroll in both directions. --sp is the block's progress (0 to 1) and --e its eased value;
+// the styles in shop-extra.css turn them into movement. Without JS or with reduced motion they stay at 1 (everything visible).
+(() => {
+    if (reduced) return;
+    const clamp01 = (x) => Math.max(0, Math.min(1, x));
+    const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+    let items = [], frame = 0;
+
+    const target = (el) => {
+        const r = el.getBoundingClientRect(), vh = window.innerHeight || 800;
+        return clamp01((vh * 0.88 - r.top) / (r.height + vh * 0.43));
+    };
+
+    const step = (item, snap) => {
+        const p = clamp01(target(item.el) / 0.86);
+        item.cur = snap ? p : item.cur + (p - item.cur) * 0.14;
+        item.el.style.setProperty('--sp', item.cur.toFixed(4));
+        item.el.style.setProperty('--e', easeOut(item.cur).toFixed(4));
+        return Math.abs(p - item.cur) > 0.003;
+    };
+
+    const loop = (snap) => {
+        let more = false;
+        items.forEach((item) => { if (item.el.isConnected && step(item, snap)) more = true; });
+        frame = more ? requestAnimationFrame(() => loop(false)) : 0;
+    };
+
+    const kick = () => { if (!frame && items.length) frame = requestAnimationFrame(() => loop(false)); };
+
+    const scan = () => {
+        cancelAnimationFrame(frame); frame = 0;
+        items = [...document.querySelectorAll('.rv')].map((el) => {
+            [...el.children].forEach((child, i) => child.style.setProperty('--i', i));
+            return { el, cur: 0 };
+        });
+        loop(true);
+    };
+
+    window.addEventListener('scroll', kick, { passive: true });
+    window.addEventListener('resize', kick);
+    document.addEventListener('livewire:navigated', scan);
+    scan();
+})();
+
+// After changing page or filter in a listing, bring the top of the listing back into view.
+window.addEventListener('listing-changed', () => {
+    const top = document.getElementById('listing-top');
+    if (top && top.getBoundingClientRect().top < 0) {
+        top.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    }
+});

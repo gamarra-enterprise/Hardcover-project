@@ -42,5 +42,5 @@
         </table>
     </div>
 
-    <div style="margin-top: 16px">{{ $orders->links() }}</div>
+    <div style="margin-top: 16px">{{ $orders->links('pagination.panel') }}</div>
 </x-panel-layout>

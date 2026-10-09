@@ -1,11 +1,11 @@
 <div class="wrap" style="padding-block: 28px 0">
     <nav class="muted" style="font-size: 13px" aria-label="Ruta"><a href="{{ route('home') }}">Inicio</a> / {{ $this->heading() }}</nav>
-    <h1 style="font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -.035em; margin-top: .3rem">{{ $this->heading() }}</h1>
+    <h1 id="listing-top" style="scroll-margin-top: 130px; font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -.035em; margin-top: .3rem">{{ $this->heading() }}</h1>
     @if ($this->subheading())<p class="muted" style="margin-top: .3rem">{{ $this->subheading() }}</p>@endif
 
     <div style="margin-top: 22px; display: grid; gap: 14px" x-data="{ open: false }">
         @if (! in_array($collection, ['regalos'], true))
-            <div class="scroll-x">
+            <x-shop.scroller class="seg-track" label="tipos de producto">
                 <div class="seg2" role="group" aria-label="Tipo de producto">
                     <button type="button" wire:click="$set('type', '')" aria-pressed="{{ $type === '' ? 'true' : 'false' }}">Todo<span class="cnt">{{ $this->typeCounts[''] }}</span></button>
                     @foreach ($this->typeOptions() as $value => $label)
@@ -14,10 +14,10 @@
                         @endif
                     @endforeach
                 </div>
-            </div>
+            </x-shop.scroller>
         @endif
         @if ($this->categories->isNotEmpty())
-            <div class="chips-row" role="group" aria-label="Género">
+            <x-shop.scroller class="chips-row" label="géneros" role="group" aria-label="Género">
                 <button type="button" class="chip" wire:click="$set('category', '')" aria-pressed="{{ $category === '' ? 'true' : 'false' }}">
                     Todos<span class="cnt">{{ $this->total }}</span>
                 </button>
@@ -26,7 +26,7 @@
                         {{ $item->name }}<span class="cnt">{{ $item->visible_count }}</span>
                     </button>
                 @endforeach
-            </div>
+            </x-shop.scroller>
         @endif
 
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap">
@@ -105,9 +105,9 @@
 
             @if ($this->products->hasPages())
                 <nav class="pager" aria-label="Paginación">
-                    <button type="button" class="btn btn-sm" wire:click="previousPage" @disabled($this->products->onFirstPage())>← Anterior</button>
+                    <button type="button" class="btn btn-sm" wire:click="previousPage" x-on:click="$dispatch('listing-changed')" @disabled($this->products->onFirstPage())>← Anterior</button>
                     <span class="num muted">Página {{ $this->products->currentPage() }} de {{ $this->products->lastPage() }}</span>
-                    <button type="button" class="btn btn-sm" wire:click="nextPage" @disabled(! $this->products->hasMorePages())>Siguiente →</button>
+                    <button type="button" class="btn btn-sm" wire:click="nextPage" x-on:click="$dispatch('listing-changed')" @disabled(! $this->products->hasMorePages())>Siguiente →</button>
                 </nav>
             @endif
         @endif

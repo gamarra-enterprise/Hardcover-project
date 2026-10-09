@@ -23,5 +23,5 @@
             </tbody>
         </table>
     </div>
-    <div style="margin-top: 16px">{{ $logs->links() }}</div>
+    <div style="margin-top: 16px">{{ $logs->links('pagination.panel') }}</div>
 </x-panel-layout>

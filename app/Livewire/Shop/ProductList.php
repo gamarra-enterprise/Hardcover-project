@@ -124,9 +124,11 @@ class ProductList extends Component
     /** Any change in the filters starts again from the first page. */
     public function updated(string $property): void
     {
-        if ($property !== 'page') {
+        if ($property !== 'page' && ! str_starts_with($property, 'paginators')) {
             $this->resetPage();
         }
+
+        $this->dispatch('listing-changed');
     }
 
     public function clear(string $filter): void
@@ -141,12 +143,14 @@ class ProductList extends Component
             default => null,
         };
         $this->resetPage();
+        $this->dispatch('listing-changed');
     }
 
     public function resetFilters(): void
     {
         $this->reset('search', 'type', 'category', 'maxPrice', 'onSale', 'inStock', 'sort');
         $this->resetPage();
+        $this->dispatch('listing-changed');
     }
 
     /** Highest price in the catalog, rounded up to a multiple of 5, for the price slider. */

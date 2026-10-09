@@ -203,3 +203,30 @@
 .shop .has-mega > a { border-bottom: 2px solid transparent; }
 .shop .hdr-nav { overflow: visible; }
 @media (max-width: 700px) { .shop .hdr-nav { overflow-x: auto; } }
+
+/* Sideways rows with arrows. */
+.shop .scroller { position: relative; min-width: 0; }
+.shop .scroller .chips-row, .shop .scroller .seg-track { padding-inline: 2px; }
+.shop .seg-track { overflow-x: auto; scrollbar-width: none; }
+.shop .seg-track::-webkit-scrollbar { display: none; }
+.shop .scroll-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); box-shadow: 0 4px 14px rgba(12, 26, 8, .14); display: grid; place-items: center; font-size: 16px; cursor: pointer; transition: background .15s, color .15s; }
+.shop .scroll-btn:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.shop .scroll-btn.left { left: -6px; }
+.shop .scroll-btn.right { right: -6px; }
+.shop .scroller:has(.scroll-btn.left:not([style*='none']))::before, .shop .scroller:has(.scroll-btn.right:not([style*='none']))::after { content: ''; position: absolute; top: 0; bottom: 0; width: 44px; pointer-events: none; z-index: 2; }
+.shop .scroller:has(.scroll-btn.left:not([style*='none']))::before { left: 0; background: linear-gradient(90deg, var(--bg), transparent); }
+.shop .scroller:has(.scroll-btn.right:not([style*='none']))::after { right: 0; background: linear-gradient(270deg, var(--bg), transparent); }
+
+/* The zoom on hover must not be cut at the edge of a carousel: leave room around the cards. */
+.shop .carousel { padding: 34px 40px 38px; margin: -34px -40px -38px; scroll-padding-inline: 40px; }
+
+/* Text that opens (accordions, filters) fades and un-blurs in, and fades out when it closes. */
+.shop .acc-b > div > div { opacity: 0; transform: translateY(-8px); filter: blur(5px); transition: opacity .35s var(--ease), transform .45s var(--ease), filter .4s var(--ease); }
+.shop .acc.open .acc-b > div > div { opacity: 1; transform: none; filter: none; transition-delay: .08s; }
+.shop .fpanel-in > * { animation: unveil .5s var(--ease) backwards; }
+.shop .fpanel-in > *:nth-child(2) { animation-delay: .06s; }
+.shop .fpanel-in > *:nth-child(3) { animation-delay: .12s; }
+@keyframes unveil { from { opacity: 0; transform: translateY(-8px); filter: blur(5px); } }
+@media (prefers-reduced-motion: reduce) {
+    .shop .acc-b > div > div, .shop .fpanel-in > * { transition: none; animation: none; filter: none; }
+}

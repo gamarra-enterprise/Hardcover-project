@@ -62,3 +62,7 @@ body.panel {
 
 .panel :focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
 .panel .p-link:focus-visible, .panel .p-btn:focus-visible { outline-offset: 0; }
+
+.panel .p-pager { display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 4px; }
+.panel .p-pager [aria-disabled='true'] { opacity: .45; cursor: not-allowed; }
+.panel svg { max-width: 1.5rem; max-height: 1.5rem; }

@@ -77,11 +77,11 @@
 
     @if ($genres)
         <div class="wrap" style="padding-block: 28px 0">
-            <div class="scroll-x" style="display: flex; gap: .5rem; padding-bottom: 4px">
+            <x-shop.scroller class="chips-row" label="géneros">
                 @foreach ($genres as $g)
                     <a class="chip" href="{{ route('catalog', ['genero' => $g['slug']]) }}">{{ $g['name'] }}<span class="cnt">{{ $g['count'] }}</span></a>
                 @endforeach
-            </div>
+            </x-shop.scroller>
         </div>
     @endif
 
@@ -132,7 +132,7 @@
         </x-shop.section>
     @endif
 
-    <section class="wrap" style="padding-block: 56px 0">
+    <section class="wrap rv" style="padding-block: 56px 0">
         <div class="band" x-data="{ min: 15 }">
             <div>
                 <div class="label" style="color: #A8EC7A">Un hábito pequeño</div>
@@ -205,7 +205,7 @@
         </div>
     </x-shop.section>
 
-    <section class="wrap" style="padding-block: 56px 0" id="club">
+    <section class="wrap rv" style="padding-block: 56px 0" id="club">
         <div class="club">
             <div>
                 <h2 style="font-size: clamp(1.6rem, 3.4vw, 2.3rem); font-weight: 600">Club de lectores Bookery</h2>

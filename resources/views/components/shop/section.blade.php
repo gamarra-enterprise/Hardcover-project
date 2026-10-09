@@ -1,6 +1,6 @@
 @props(['title', 'subtitle' => null, 'icon' => null, 'id' => null])
 
-<section class="wrap" @if ($id) id="{{ $id }}" @endif style="padding-block: 64px 0">
+<section class="wrap rv" @if ($id) id="{{ $id }}" @endif style="padding-block: 64px 0">
     <div class="sec-head">
         <div style="display: flex; align-items: center; gap: .8rem; min-width: 0">
             @if ($icon)<span style="color: var(--accent-deep); display: flex"><x-shop.icon :name="$icon" size="22" /></span>@endif

@@ -18,5 +18,5 @@
             </tbody>
         </table>
     </div>
-    <div style="margin-top: 16px">{{ $subscribers->links() }}</div>
+    <div style="margin-top: 16px">{{ $subscribers->links('pagination.panel') }}</div>
 </x-panel-layout>

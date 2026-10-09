@@ -33,5 +33,5 @@
             </tbody>
         </table>
     </div>
-    <div style="margin-top: 16px">{{ $products->links() }}</div>
+    <div style="margin-top: 16px">{{ $products->links('pagination.panel') }}</div>
 </x-panel-layout>

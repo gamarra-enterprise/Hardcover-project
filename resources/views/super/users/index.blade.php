@@ -55,7 +55,7 @@
             </tbody>
         </table>
     </div>
-    <div style="margin-top: 16px">{{ $users->links() }}</div>
+    <div style="margin-top: 16px">{{ $users->links('pagination.panel') }}</div>
 
     <section class="p-card" style="margin-top: 18px">
         <h2>Qué puede hacer cada rol</h2>
