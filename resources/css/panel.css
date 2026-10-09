@@ -66,3 +66,8 @@ body.panel {
 .panel .p-pager { display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 4px; }
 .panel .p-pager [aria-disabled='true'] { opacity: .45; cursor: not-allowed; }
 .panel svg { max-width: 1.5rem; max-height: 1.5rem; }
+
+.panel .p-tabs { display: flex; gap: 6px; margin: 0 0 18px; flex-wrap: wrap; }
+.panel .p-tabs a { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14px; }
+.panel .p-tabs a:hover { border-color: var(--ink); }
+.panel .p-tabs a[aria-current='page'] { background: var(--ink); color: #fff; border-color: var(--ink); }

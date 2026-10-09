@@ -1,5 +1,21 @@
 @props(['title' => null, 'subtitle' => null])
 
+@php
+    $isSuper = auth()->user()->role === \App\Enums\UserRole::SUPER_ADMIN;
+    // The menu has one entry per area; the screens inside an area are tabs at the top of each page.
+    $groups = [
+        ['label' => 'Resumen', 'tabs' => [['Resumen', 'admin.index', 'admin.index'], ['Ventas', 'admin.sales', 'admin.sales']]],
+        ['label' => 'Pedidos', 'tabs' => [['Pedidos', 'admin.orders.index', 'admin.orders.*']]],
+        ['label' => 'Catálogo', 'tabs' => [['Productos', 'admin.products.index', 'admin.products.*'], ['Inventario', 'admin.inventory.index', 'admin.inventory.*'], ['Categorías', 'admin.categories.index', 'admin.categories.*']]],
+        ['label' => 'Tienda', 'tabs' => [['Envíos', 'admin.shipping.index', 'admin.shipping.*'], ['Club de lectores', 'admin.club.index', 'admin.club.*']]],
+        ['super' => true, 'heading' => 'Super admin', 'label' => 'Resumen', 'tabs' => [['Resumen', 'super.index', 'super.index']]],
+        ['super' => true, 'label' => 'Usuarios y roles', 'tabs' => [['Usuarios y roles', 'super.users.index', 'super.users.*']]],
+        ['super' => true, 'label' => 'Sistema', 'tabs' => [['Pasarelas de pago', 'super.gateways', 'super.gateways'], ['Respaldos', 'super.backups.index', 'super.backups.*']]],
+        ['super' => true, 'label' => 'Actividad', 'tabs' => [['Actividad', 'super.activity', 'super.activity']]],
+    ];
+    $current = collect($groups)->first(fn ($g) => collect($g['tabs'])->contains(fn ($t) => request()->routeIs($t[2])));
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -18,26 +34,11 @@
             <nav class="p-side" aria-label="Panel">
                 <a class="p-logo" href="{{ route('admin.index') }}">hardcover<small>panel</small></a>
 
-                <div class="p-group">Tienda</div>
-                <a class="p-link" href="{{ route('admin.index') }}" @if (request()->routeIs('admin.index')) aria-current="page" @endif>Resumen</a>
-                <a class="p-link" href="{{ route('admin.sales') }}" @if (request()->routeIs('admin.sales')) aria-current="page" @endif>Ventas</a>
-                <a class="p-link" href="{{ route('admin.orders.index') }}" @if (request()->routeIs('admin.orders.*')) aria-current="page" @endif>Pedidos</a>
-
-                <a class="p-link" href="{{ route('admin.products.index') }}" @if (request()->routeIs('admin.products.*')) aria-current="page" @endif>Productos</a>
-                <a class="p-link" href="{{ route('admin.inventory.index') }}" @if (request()->routeIs('admin.inventory.*')) aria-current="page" @endif>Inventario</a>
-                <a class="p-link" href="{{ route('admin.categories.index') }}" @if (request()->routeIs('admin.categories.*')) aria-current="page" @endif>Categorías</a>
-
-                <a class="p-link" href="{{ route('admin.club.index') }}" @if (request()->routeIs('admin.club.*')) aria-current="page" @endif>Club de lectores</a>
-                <a class="p-link" href="{{ route('admin.shipping.index') }}" @if (request()->routeIs('admin.shipping.*')) aria-current="page" @endif>Envíos</a>
-
-                @if (auth()->user()->role === \App\Enums\UserRole::SUPER_ADMIN)
-                    <div class="p-group">Sistema</div>
-                    <a class="p-link" href="{{ route('super.index') }}" @if (request()->routeIs('super.index')) aria-current="page" @endif>Resumen</a>
-                    <a class="p-link" href="{{ route('super.users.index') }}" @if (request()->routeIs('super.users.*')) aria-current="page" @endif>Usuarios y roles</a>
-                    <a class="p-link" href="{{ route('super.gateways') }}" @if (request()->routeIs('super.gateways')) aria-current="page" @endif>Pasarelas de pago</a>
-                    <a class="p-link" href="{{ route('super.backups.index') }}" @if (request()->routeIs('super.backups.*')) aria-current="page" @endif>Respaldos</a>
-                    <a class="p-link" href="{{ route('super.activity') }}" @if (request()->routeIs('super.activity')) aria-current="page" @endif>Actividad</a>
-                @endif
+                @foreach ($groups as $group)
+                    @if ($group['super'] ?? false) @continue(! $isSuper) @endif
+                    @if (! empty($group['heading']))<div class="p-group">{{ $group['heading'] }}</div>@endif
+                    <a class="p-link" href="{{ route($group['tabs'][0][1]) }}" @if ($group === $current) aria-current="page" @endif>{{ $group['label'] }}</a>
+                @endforeach
 
                 <div class="p-foot">
                     <a href="{{ route('security.show') }}">Seguridad (2 pasos)</a>
@@ -51,6 +52,13 @@
             </nav>
 
             <main class="p-main">
+                @if ($current && count($current['tabs']) > 1)
+                    <nav class="p-tabs" aria-label="{{ $current['label'] }}">
+                        @foreach ($current['tabs'] as [$tabLabel, $tabRoute, $tabPattern])
+                            <a href="{{ route($tabRoute) }}" @if (request()->routeIs($tabPattern)) aria-current="page" @endif>{{ $tabLabel }}</a>
+                        @endforeach
+                    </nav>
+                @endif
                 @if ($title)
                     <h1 class="p-title">{{ $title }}</h1>
                     <p class="p-sub">{{ $subtitle }}</p>
