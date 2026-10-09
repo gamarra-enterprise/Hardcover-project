@@ -101,6 +101,7 @@ Route::middleware(['auth', 'verified', 'role:admin', 'two-factor'])->prefix('adm
     Route::get('productos/exportar', [AdminProductController::class, 'export'])->name('products.export');
     Route::resource('productos', AdminProductController::class)->parameters(['productos' => 'product'])->names('products')->except(['show', 'destroy']);
     Route::get('envios', [AdminShippingController::class, 'index'])->name('shipping.index');
+    Route::put('envios/ajustes', [AdminShippingController::class, 'updateSettings'])->name('shipping.settings');
     Route::put('envios/zonas/{zone}', [AdminShippingController::class, 'updateZone'])->name('shipping.zones.update');
     Route::post('envios/zonas/{zone}/distritos', [AdminShippingController::class, 'storeDistrict'])->name('shipping.districts.store');
     Route::put('envios/distritos/{district}', [AdminShippingController::class, 'updateDistrict'])->name('shipping.districts.update');

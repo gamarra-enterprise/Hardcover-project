@@ -69,4 +69,18 @@ class AdminShippingTest extends TestCase
         $this->actingAs($admin)->post(route('admin.shipping.districts.store', $zone), ['name' => 'Barato', 'ubigeo' => '150104', 'cost' => '3'])
             ->assertSessionHas('error');
     }
+
+    public function test_free_shipping_amount_is_saved_and_used_by_the_shop(): void
+    {
+        $this->actingAs($this->admin())->put(route('admin.shipping.settings'), ['free_shipping_from' => '99.50'])->assertSessionHas('notice');
+
+        $this->assertSame('99.50', \App\Models\Setting::get('free_shipping_from'));
+        $this->assertDatabaseHas('activity_logs', ['action' => 'shipping.free_from_updated']);
+        $this->actingAs($this->admin())->put(route('admin.shipping.settings'), ['free_shipping_from' => '-5'])->assertSessionHasErrors('free_shipping_from');
+    }
+
+    public function test_customers_cannot_change_the_free_shipping_amount(): void
+    {
+        $this->actingAs(User::factory()->create())->put(route('admin.shipping.settings'), ['free_shipping_from' => '1'])->assertForbidden();
+    }
 }

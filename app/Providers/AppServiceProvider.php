@@ -43,6 +43,14 @@ class AppServiceProvider extends ServiceProvider
         // The menu of the shop lists the genres that have products.
         View::composer('components.shop-layout', fn ($view) => $view->with('menuGenres', \App\Support\MenuGenres::all()));
 
+        // What staff saved in the panel wins over the defaults in config/shop.php. A missing table (before migrating) is not an error.
+        try {
+            if (($free = \App\Models\Setting::get('free_shipping_from')) !== null) {
+                config(['shop.free_shipping_from' => (float) $free]);
+            }
+        } catch (\Throwable) {
+        }
+
         // The super admin has full control over every resource, so no policy can deny them.
         Gate::before(fn (User $user) => $user->role === UserRole::SUPER_ADMIN ? true : null);
     }

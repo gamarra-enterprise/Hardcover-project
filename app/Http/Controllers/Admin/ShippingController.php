@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Exceptions\ShippingCostBelowMinimum;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Setting;
 use App\Models\ShippingDistrict;
 use App\Models\ShippingZone;
 use Illuminate\Contracts\View\View;
@@ -25,6 +26,18 @@ class ShippingController extends Controller
         $zones = ShippingZone::with(['districts' => fn ($q) => $q->orderBy('name')])->orderBy('position')->get();
 
         return view('admin.shipping.index', ['zones' => $zones, 'freeFrom' => config('shop.free_shipping_from')]);
+    }
+
+    public function updateSettings(Request $request): RedirectResponse
+    {
+        Gate::authorize('create', ShippingZone::class);
+
+        $data = $request->validate(['free_shipping_from' => ['required', 'numeric', 'min:0', 'max:99999']]);
+
+        Setting::put('free_shipping_from', number_format((float) $data['free_shipping_from'], 2, '.', ''));
+        ActivityLog::record('shipping.free_from_updated', 'Envío gratis desde S/ '.number_format((float) $data['free_shipping_from'], 2));
+
+        return back()->with('notice', 'Envío gratis actualizado.');
     }
 
     public function updateZone(Request $request, ShippingZone $zone): RedirectResponse

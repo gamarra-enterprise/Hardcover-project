@@ -5,6 +5,19 @@
     @if (session('error'))<div class="p-notice error" role="alert">{{ session('error') }}</div>@endif
     @if ($errors->any())<div class="p-notice error" role="alert">{{ $errors->first() }}</div>@endif
 
+    <section class="p-card">
+        <h2>Envío gratis</h2>
+        <form method="POST" action="{{ route('admin.shipping.settings') }}" class="p-tools" style="margin-bottom: 0">
+            @csrf @method('PUT')
+            <label class="p-field">Gratis desde (S/, IGV incluido)
+                <input type="number" step="0.01" min="0" name="free_shipping_from" value="{{ number_format($freeFrom, 2, '.', '') }}" required>
+                @error('free_shipping_from')<span style="color: var(--bad)">{{ $message }}</span>@enderror
+            </label>
+            <button class="p-btn">Guardar</button>
+        </form>
+        <p class="p-muted">Se ve en la barra superior, el carrito y el checkout de inmediato. Pon 0 para que todo envío sea gratis.</p>
+    </section>
+
     @foreach ($zones as $zone)
         <section class="p-card">
             <h2>{{ $zone->name }}</h2>
