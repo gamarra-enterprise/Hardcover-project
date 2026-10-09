@@ -1,50 +1,46 @@
 @use('App\Enums\OrderStatus')
 @use('App\Support\Money')
 
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Pedidos') }}</h2>
-    </x-slot>
+<x-panel-layout title="Pedidos" subtitle="Busca por código o correo y filtra por estado.">
+    <form method="GET" class="p-tools">
+        <label class="p-field">Buscar
+            <input type="search" name="q" value="{{ $search }}" placeholder="Código o correo">
+        </label>
+        <label class="p-field">Estado
+            <select name="estado">
+                <option value="">Todos</option>
+                @foreach (OrderStatus::cases() as $s)
+                    <option value="{{ $s->value }}" @selected($status === $s)>{{ $s->label() }}</option>
+                @endforeach
+            </select>
+        </label>
+        <button class="p-btn p-btn-primary">Filtrar</button>
+        @if ($search !== '' || $status)
+            <a class="p-btn" href="{{ route('admin.orders.index') }}">Limpiar</a>
+        @endif
+    </form>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
-            <form method="GET" class="flex flex-wrap gap-3 items-end">
-                <label class="text-sm">Buscar
-                    <input type="search" name="q" value="{{ $search }}" placeholder="Código o correo" class="block mt-1 rounded border-gray-300">
-                </label>
-                <label class="text-sm">Estado
-                    <select name="estado" class="block mt-1 rounded border-gray-300">
-                        <option value="">Todos</option>
-                        @foreach (OrderStatus::cases() as $s)
-                            <option value="{{ $s->value }}" @selected($status === $s)>{{ $s->label() }}</option>
-                        @endforeach
-                    </select>
-                </label>
-                <button class="px-4 py-2 bg-gray-800 text-white rounded">Filtrar</button>
-            </form>
-
-            <div class="bg-white shadow-sm sm:rounded-lg overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="text-left text-gray-500">
-                        <tr><th class="p-3">Pedido</th><th class="p-3">Fecha</th><th class="p-3">Cliente</th><th class="p-3">Estado</th><th class="p-3 text-right">Total</th></tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($orders as $order)
-                            <tr class="border-t">
-                                <td class="p-3"><a class="text-indigo-600 underline" href="{{ route('admin.orders.show', $order) }}">{{ $order->tracking_code }}</a></td>
-                                <td class="p-3">{{ $order->created_at->timezone(config('app.display_timezone'))->format('d/m/Y H:i') }}</td>
-                                <td class="p-3">{{ $order->shipping_address['recipient_name'] ?? '' }}<br><span class="text-gray-500">{{ $order->contactEmail() }}</span></td>
-                                <td class="p-3">{{ $order->status->label() }}</td>
-                                <td class="p-3 text-right">{{ Money::format($order->total) }}</td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="p-6 text-center text-gray-500">No hay pedidos con esos filtros.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            {{ $orders->links() }}
-        </div>
+    <div class="p-table-wrap">
+        <table class="p-table">
+            <thead>
+                <tr><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th class="num">Total</th></tr>
+            </thead>
+            <tbody>
+                @forelse ($orders as $order)
+                    @php($off = in_array($order->status, [OrderStatus::CANCELLED, OrderStatus::REFUNDED], true))
+                    <tr>
+                        <td><a href="{{ route('admin.orders.show', $order) }}"><b>{{ $order->tracking_code }}</b></a></td>
+                        <td>{{ $order->created_at->timezone(config('app.display_timezone'))->format('d/m/Y H:i') }}</td>
+                        <td>{{ $order->shipping_address['recipient_name'] ?? '' }}<br><span class="p-muted">{{ $order->contactEmail() }}</span></td>
+                        <td><span class="p-pill {{ $off ? 'off' : ($order->status === OrderStatus::DELIVERED ? 'done' : ($order->status === OrderStatus::PENDING ? 'warn' : '')) }}">{{ $order->status->label() }}</span></td>
+                        <td class="num">{{ Money::format($order->total) }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="5" class="p-muted" style="text-align: center; padding: 28px">No hay pedidos con esos filtros.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-</x-app-layout>
+
+    <div style="margin-top: 16px">{{ $orders->links() }}</div>
+</x-panel-layout>

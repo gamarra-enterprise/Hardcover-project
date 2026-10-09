@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountOrderController;
+use App\Http\Controllers\Admin\HomeController as AdminHomeController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Payments\ReturnController;
 use App\Http\Controllers\Payments\WebhookController;
 use App\Http\Controllers\ProductController;
 use App\Livewire\Account\Addresses;
+use App\Livewire\Actions\Logout;
 use App\Livewire\Cart\CartPage;
 use App\Livewire\Checkout\Checkout;
 use App\Livewire\Orders\TrackOrder;
@@ -43,6 +45,11 @@ Route::get('dashboard', DashboardController::class)
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::post('salir', function (Logout $logout) {
+        $logout();
+
+        return redirect()->route('home');
+    })->name('logout');
     Route::get('cuenta/pedidos', [AccountOrderController::class, 'index'])->name('account.orders');
     Route::get('cuenta/direcciones', Addresses::class)->name('account.addresses');
     Route::post('pedido/{order:tracking_code}/cancelar', [AccountOrderController::class, 'cancel'])->name('orders.cancel');
@@ -54,7 +61,7 @@ Route::view('profile', 'profile')
 
 // Site management: products, categories, stock and orders. Admin and super admin.
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::view('/', 'admin.index')->name('index');
+    Route::get('/', AdminHomeController::class)->name('index');
     Route::get('pedidos', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('pedidos/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('pedidos/{order}', [AdminOrderController::class, 'update'])->name('orders.update');

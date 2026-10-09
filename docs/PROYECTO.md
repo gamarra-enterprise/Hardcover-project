@@ -190,7 +190,7 @@ Pruebas del navegador: `npm run test:js` ejecuta el `card-form.js` real en un DO
 ## Siguiente
 
 1. **Cuenta del cliente**: «Mis pedidos» hecho (`/cuenta/pedidos`, lista, detalle con línea de tiempo y botón «Cancelar pedido»; `/dashboard` redirige ahí a los clientes). Direcciones hecho (`/cuenta/direcciones`: agregar, editar, eliminar y elegir la principal; el checkout ya usa la principal).
-2. **Panel de administración**: pedidos hecho (`/admin/pedidos`: lista con filtro por estado y búsqueda por código o correo, detalle con productos, pagos e historial, y cambio de estado con nota; cancelar usa `OrderService::cancel`, que devuelve stock y dinero; «Confirmado» y «Reembolsado» no se fuerzan a mano porque son del flujo de pagos). Falta: productos y categorías (agregar, editar, ocultar), distritos y tarifas de envío, confirmación de pagos por transferencia, exportación del catálogo, resumen de ventas.
+2. **Panel de administración**: pedidos hecho (`/admin/pedidos`: lista con filtro por estado y búsqueda por código o correo, detalle con productos, pagos e historial, y cambio de estado con nota; cancelar usa `OrderService::cancel`, que devuelve stock y dinero; «Confirmado» y «Reembolsado» no se fuerzan a mano porque son del flujo de pagos). El panel tiene su propio diseño (`panel-layout`, `resources/css/panel.css`, menú lateral, resumen con lo pendiente del día) y la ruta `POST /salir`. Falta: productos y categorías (agregar, editar, ocultar), distritos y tarifas de envío, confirmación de pagos por transferencia, exportación del catálogo, resumen de ventas.
 3. **Panel de super admin**: usuarios y roles, pasarelas, respaldos, registro de actividad.
 4. Correos, accesibilidad, pruebas de carga y despliegue.
 
