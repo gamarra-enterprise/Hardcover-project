@@ -1,6 +1,6 @@
 # Hardcover Bookery: guía breve
 
-Tienda en línea de libros y productos afines (separadores, llaveros, figuras). Instagram: @hardcoverbookery. Estado al 2026-10-08.
+Tienda en línea de libros y productos afines (separadores, llaveros, figuras). Instagram: @hardcoverbookery. Estado al 2026-10-09 (proyecto pausado; ver `ESTADO.md` para retomar y `DESPLIEGUE.md` para salir a producción).
 
 ## Perfiles
 
