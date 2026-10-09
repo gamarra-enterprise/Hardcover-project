@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Category;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +34,8 @@ class CategoryController extends Controller
 
         $data = $this->validated($request);
         $data['slug'] = $this->uniqueSlug($data['name']);
-        Category::create($data);
+        $category = Category::create($data);
+        ActivityLog::record('category.created', 'Categoría creada: '.$category->name);
 
         return redirect()->route('admin.categories.index')->with('notice', 'Categoría creada.');
     }
@@ -50,6 +52,7 @@ class CategoryController extends Controller
         Gate::authorize('update', $category);
 
         $category->update($this->validated($request));
+        ActivityLog::record('category.updated', 'Categoría editada: '.$category->name.($category->is_active ? '' : ' (inactiva)'));
 
         return redirect()->route('admin.categories.index')->with('notice', 'Cambios guardados.');
     }
@@ -63,6 +66,7 @@ class CategoryController extends Controller
         }
 
         $category->delete();
+        ActivityLog::record('category.deleted', 'Categoría eliminada: '.$category->name);
 
         return back()->with('notice', 'Categoría eliminada.');
     }

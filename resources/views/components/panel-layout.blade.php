@@ -30,7 +30,9 @@
 
                 @if (auth()->user()->role === \App\Enums\UserRole::SUPER_ADMIN)
                     <div class="p-group">Sistema</div>
-                    <a class="p-link" href="{{ route('super.index') }}" @if (request()->routeIs('super.*')) aria-current="page" @endif>Super admin</a>
+                    <a class="p-link" href="{{ route('super.index') }}" @if (request()->routeIs('super.index')) aria-current="page" @endif>Resumen</a>
+                    <a class="p-link" href="{{ route('super.users.index') }}" @if (request()->routeIs('super.users.*')) aria-current="page" @endif>Usuarios y roles</a>
+                    <a class="p-link" href="{{ route('super.activity') }}" @if (request()->routeIs('super.activity')) aria-current="page" @endif>Actividad</a>
                 @endif
 
                 <div class="p-foot">

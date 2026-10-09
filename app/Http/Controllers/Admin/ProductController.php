@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\ProductStatus;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\BookDetail;
 use App\Models\Category;
 use App\Models\Product;
@@ -51,6 +52,8 @@ class ProductController extends Controller
     {
         Gate::authorize('viewAny', Product::class);
         abort_unless(auth()->user()->isStaff(), 403);
+
+        ActivityLog::record('catalog.exported', 'Exportó el catálogo a CSV');
 
         return response()->streamDownload(
             fn () => $exporter->write(fopen('php://output', 'w')),
@@ -116,6 +119,8 @@ class ProductController extends Controller
             'format' => ['nullable', 'string', 'max:30'],
         ]);
 
+        $wasNew = ! $product->exists;
+
         DB::transaction(function () use ($product, $data, $request) {
             $product->fill(collect($data)->only(['sku', 'name', 'description', 'price', 'sale_price', 'cost_price', 'stock', 'weight_grams'])->all());
             // The model settles "active" or "out of stock" from the stock; here we only choose hidden or not.
@@ -147,6 +152,8 @@ class ProductController extends Controller
                 BookDetail::where('product_id', $product->id)->delete();
             }
         });
+
+        ActivityLog::record($wasNew ? 'product.created' : 'product.updated', ($wasNew ? 'Producto creado: ' : 'Producto editado: ').$product->name.' ('.$product->sku.')', ['product_id' => $product->id]);
 
         return $product;
     }

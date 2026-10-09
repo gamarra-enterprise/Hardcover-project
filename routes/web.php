@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\ShippingController as AdminShippingController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Super\ActivityController as SuperActivityController;
+use App\Http\Controllers\Super\UserController as SuperUserController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
@@ -82,6 +84,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 // Users and roles, payment gateways, shipping rates and activity. Super admin only.
 Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super')->name('super.')->group(function () {
     Route::view('/', 'super.index')->name('index');
+    Route::get('usuarios', [SuperUserController::class, 'index'])->name('users.index');
+    Route::patch('usuarios/{user}/rol', [SuperUserController::class, 'updateRole'])->name('users.role');
+    Route::get('actividad', SuperActivityController::class)->name('activity');
 });
 
 require __DIR__.'/auth.php';

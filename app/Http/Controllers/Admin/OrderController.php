@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Exceptions\InvalidOrderTransition;
 use App\Exceptions\OrderNotCancellable;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Contracts\View\View;
@@ -74,6 +75,8 @@ class OrderController extends Controller
         } catch (InvalidOrderTransition|OrderNotCancellable) {
             return back()->with('error', 'El pedido cambió mientras tanto y ya no puede pasar a ese estado.');
         }
+
+        ActivityLog::record('order.status_changed', "Pedido {$order->tracking_code} → {$to->label()}", ['order_id' => $order->id]);
 
         return back()->with('notice', 'Pedido actualizado: '.$to->label().'. Se avisó al cliente por correo.');
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exceptions\ShippingCostBelowMinimum;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\ShippingDistrict;
 use App\Models\ShippingZone;
 use Illuminate\Contracts\View\View;
@@ -34,6 +35,8 @@ class ShippingController extends Controller
 
         $zone->update(['min_cost' => $data['min_cost'], 'is_active' => $request->boolean('is_active')]);
 
+        ActivityLog::record('shipping.zone_updated', "Zona {$zone->name}: mínimo S/ {$zone->min_cost}".($zone->is_active ? '' : ' (inactiva)'));
+
         return back()->with('notice', 'Zona actualizada: '.$zone->name.'.');
     }
 
@@ -53,6 +56,8 @@ class ShippingController extends Controller
             return back()->withInput()->with('error', $e->getMessage());
         }
 
+        ActivityLog::record('shipping.district_created', "Distrito agregado: {$data['name']} a S/ ".number_format((float) $data['cost'], 2));
+
         return back()->with('notice', 'Distrito agregado.');
     }
 
@@ -67,6 +72,8 @@ class ShippingController extends Controller
         } catch (ShippingCostBelowMinimum $e) {
             return back()->with('error', $e->getMessage());
         }
+
+        ActivityLog::record('shipping.district_updated', "Tarifa de {$district->name}: S/ {$district->cost}".($district->is_active ? '' : ' (inactivo)'));
 
         return back()->with('notice', 'Tarifa de '.$district->name.' guardada.');
     }
