@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Shop;
 
+use App\Enums\ProductType;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,6 +31,12 @@ class ProductList extends Component
         'az' => 'Título A-Z',
     ];
 
+    /** Preset listing: novedades, masvendidos, ofertas or regalos. Null is the whole catalog. */
+    public ?string $collection = null;
+
+    #[Url(as: 'tipo', except: '')]
+    public string $type = '';
+
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
@@ -48,6 +55,72 @@ class ProductList extends Component
     #[Url(as: 'orden', except: 'rel')]
     public string $sort = 'rel';
 
+    public const COLLECTIONS = [
+        'novedades' => ['Novedades', 'Lo último que llegó a la librería.'],
+        'masvendidos' => ['Más vendidos', 'Lo que más se llevó en los últimos 90 días.'],
+        'ofertas' => ['Ofertas', 'Productos con precio rebajado.'],
+        'regalos' => ['Papelería y regalos', 'Separadores, llaveros, figuras y más.'],
+    ];
+
+    public function mount(?string $collection = null): void
+    {
+        abort_if($collection !== null && ! isset(self::COLLECTIONS[$collection]), 404);
+
+        $this->collection = $collection;
+
+        if ($collection === 'novedades' && $this->sort === 'rel') {
+            $this->sort = 'new';
+        }
+    }
+
+    public function heading(): string
+    {
+        return $this->collection ? self::COLLECTIONS[$this->collection][0] : 'Catálogo';
+    }
+
+    public function subheading(): ?string
+    {
+        return $this->collection ? self::COLLECTIONS[$this->collection][1] : null;
+    }
+
+    /** @return array<string, string> product types with a label, for the type selector */
+    public function typeOptions(): array
+    {
+        return collect(ProductType::cases())->mapWithKeys(fn (ProductType $t) => [$t->value => $t->label()])->all();
+    }
+
+    /** @return array<string, int> how many products each type would show with the other filters, plus '' for all */
+    #[Computed]
+    public function typeCounts(): array
+    {
+        $counts = $this->applyFilters(Product::query(), withCategory: true, withType: false)
+            ->selectRaw('products.type, count(*) as n')->groupBy('products.type')->pluck('n', 'type')->all();
+
+        return ['' => array_sum($counts)] + $counts;
+    }
+
+    /**
+     * Six equal price bands up to the ceiling, with how many products fall in each (the other filters applied),
+     * for the little histogram above the price slider.
+     *
+     * @return list<int>
+     */
+    #[Computed]
+    public function priceBins(): array
+    {
+        $step = max(1, $this->priceCeiling / 6);
+        $bins = array_fill(0, 6, 0);
+
+        $this->applyFilters(Product::query(), withPrice: false)
+            ->selectRaw('least(5, floor(coalesce(products.sale_price, products.price) / ?)) as band, count(*) as n', [$step])
+            ->groupBy('band')->pluck('n', 'band')
+            ->each(function ($n, $band) use (&$bins) {
+                $bins[(int) $band] = (int) $n;
+            });
+
+        return $bins;
+    }
+
     /** Any change in the filters starts again from the first page. */
     public function updated(string $property): void
     {
@@ -61,6 +134,7 @@ class ProductList extends Component
         match ($filter) {
             'search' => $this->search = '',
             'category' => $this->category = '',
+            'type' => $this->type = '',
             'maxPrice' => $this->maxPrice = null,
             'onSale' => $this->onSale = false,
             'inStock' => $this->inStock = false,
@@ -71,7 +145,7 @@ class ProductList extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('search', 'category', 'maxPrice', 'onSale', 'inStock', 'sort');
+        $this->reset('search', 'type', 'category', 'maxPrice', 'onSale', 'inStock', 'sort');
         $this->resetPage();
     }
 
@@ -108,6 +182,9 @@ class ProductList extends Component
     {
         $query = $this->applyFilters(Product::query()->with(['bookDetail', 'categories']));
 
+        if ($this->collection === 'masvendidos' && $this->sort === 'rel') {
+            $query->reorder()->orderByRaw(Product::SOLD_UNITS_SQL.' desc')->orderBy('id');
+        } else {
         match ($this->sort) {
             'new' => $query->latest()->orderBy('id'),
             'asc' => $query->orderByRaw('coalesce(sale_price, price) asc')->orderBy('name'),
@@ -115,6 +192,7 @@ class ProductList extends Component
             'az' => $query->orderByRaw('unaccent(lower(name))'),
             default => $query->orderByRaw("case when status = 'out_of_stock' then 1 else 0 end")->orderByRaw('unaccent(lower(name))'),
         };
+        }
 
         return $query->paginate(self::PER_PAGE);
     }
@@ -127,6 +205,9 @@ class ProductList extends Component
 
         if (trim($this->search) !== '') {
             $chips['search'] = '«'.trim($this->search).'»';
+        }
+        if ($this->type !== '' && ($t = ProductType::tryFrom($this->type))) {
+            $chips['type'] = $t->label();
         }
         if ($this->category !== '' && ($name = Category::where('slug', $this->category)->value('name'))) {
             $chips['category'] = $name;
@@ -148,9 +229,20 @@ class ProductList extends Component
      * @param  Builder<Product>  $query
      * @return Builder<Product>
      */
-    private function applyFilters(Builder $query, bool $withCategory = true): Builder
+    private function applyFilters(Builder $query, bool $withCategory = true, bool $withType = true, bool $withPrice = true): Builder
     {
         $query->visible();
+
+        match ($this->collection) {
+            'masvendidos' => $query->whereRaw(Product::SOLD_UNITS_SQL.' > 0'),
+            'ofertas' => $query->whereNotNull('products.sale_price'),
+            'regalos' => $query->where('products.type', '!=', ProductType::BOOK->value),
+            default => null,
+        };
+
+        if ($withType && $this->type !== '' && ProductType::tryFrom($this->type)) {
+            $query->where('products.type', $this->type);
+        }
 
         $term = trim($this->search);
         if ($term !== '') {
@@ -172,7 +264,7 @@ class ProductList extends Component
         if ($withCategory && $this->category !== '') {
             $query->whereHas('categories', fn (Builder $c) => $c->where('categories.slug', $this->category));
         }
-        if ($this->maxPrice !== null && $this->maxPrice < $this->priceCeiling) {
+        if ($withPrice && $this->maxPrice !== null && $this->maxPrice < $this->priceCeiling) {
             $query->whereRaw('coalesce(products.sale_price, products.price) <= ?', [$this->maxPrice]);
         }
         if ($this->onSale) {
@@ -187,6 +279,6 @@ class ProductList extends Component
 
     public function render()
     {
-        return view('livewire.shop.product-list');
+        return view('livewire.shop.product-list')->title($this->heading());
     }
 }

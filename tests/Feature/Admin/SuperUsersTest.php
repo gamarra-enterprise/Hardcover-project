@@ -59,7 +59,7 @@ class SuperUsersTest extends TestCase
     public function test_panel_actions_leave_a_trace_in_the_activity_log(): void
     {
         $admin = User::factory()->admin()->create();
-        $this->actingAs($admin)->post(route('admin.products.store'), ['sku' => 'X-1', 'name' => 'Libro X', 'price' => '10', 'stock' => 1]);
+        $this->actingAs($admin)->post(route('admin.products.store'), ['type' => 'libro', 'sku' => 'X-1', 'name' => 'Libro X', 'price' => '10', 'stock' => 1]);
 
         $this->assertDatabaseHas('activity_logs', ['user_id' => $admin->id, 'action' => 'product.created']);
 

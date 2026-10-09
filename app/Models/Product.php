@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ProductStatus;
+use App\Enums\ProductType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
-    'sku', 'name', 'slug', 'description', 'image_path', 'price', 'sale_price', 'cost_price', 'stock',
+    'sku', 'name', 'slug', 'type', 'description', 'image_path', 'price', 'sale_price', 'cost_price', 'stock',
     'weight_grams', 'width_mm', 'height_mm', 'depth_mm', 'status',
 ])]
 /** cost_price is what the store paid: hidden from serialization so it never reaches the shop. */
@@ -43,6 +44,7 @@ class Product extends Model
             'sale_price' => 'decimal:2',
             'cost_price' => 'decimal:2',
             'status' => ProductStatus::class,
+            'type' => ProductType::class,
         ];
     }
 
@@ -50,6 +52,15 @@ class Product extends Model
     public function scopeVisible(Builder $query): void
     {
         $query->where('status', '!=', ProductStatus::HIDDEN->value);
+    }
+
+    /** Units sold in orders whose payment was confirmed and that were not cancelled or refunded afterwards, as a SQL expression. */
+    public const SOLD_UNITS_SQL = "(select coalesce(sum(oi.quantity), 0) from order_items oi join orders o on o.id = oi.order_id where oi.product_id = products.id and o.status in ('confirmed','processing','shipped','delivered') and coalesce(o.stock_deducted_at, o.created_at) >= now() - interval '90 days')";
+
+    /** Best sellers of the last 90 days first, only products that sold something. */
+    public function scopeBestSelling(Builder $query): void
+    {
+        $query->whereRaw(self::SOLD_UNITS_SQL.' > 0')->orderByRaw(self::SOLD_UNITS_SQL.' desc');
     }
 
     public function isVisible(): bool

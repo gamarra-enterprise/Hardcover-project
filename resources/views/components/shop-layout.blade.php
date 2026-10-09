@@ -13,7 +13,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap">
 
-        @vite(['resources/css/app.css', 'resources/css/shop.css', 'resources/js/shop.js'])
+        @vite(['resources/css/app.css', 'resources/css/shop.css', 'resources/css/shop-extra.css', 'resources/js/shop.js'])
     </head>
     <body class="shop">
         <div class="announce">Envío gratis desde S/ {{ number_format(config('shop.free_shipping_from'), 0) }} · Despachamos en 24 horas</div>

@@ -22,7 +22,7 @@ class AdminCatalogTest extends TestCase
 
     private function payload(array $over = []): array
     {
-        return array_merge(['sku' => 'LIB-001', 'name' => 'El Aleph', 'price' => '45.00', 'stock' => 5], $over);
+        return array_merge(['type' => 'libro', 'sku' => 'LIB-001', 'name' => 'El Aleph', 'price' => '45.00', 'stock' => 5], $over);
     }
 
     public function test_customer_cannot_manage_the_catalog(): void

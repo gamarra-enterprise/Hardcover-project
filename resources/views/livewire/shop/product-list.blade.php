@@ -1,8 +1,21 @@
 <div class="wrap" style="padding-block: 28px 0">
-    <nav class="muted" style="font-size: 13px" aria-label="Ruta"><a href="{{ route('home') }}">Inicio</a> / Catálogo</nav>
-    <h1 style="font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -.035em; margin-top: .3rem">Catálogo</h1>
+    <nav class="muted" style="font-size: 13px" aria-label="Ruta"><a href="{{ route('home') }}">Inicio</a> / {{ $this->heading() }}</nav>
+    <h1 style="font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -.035em; margin-top: .3rem">{{ $this->heading() }}</h1>
+    @if ($this->subheading())<p class="muted" style="margin-top: .3rem">{{ $this->subheading() }}</p>@endif
 
     <div style="margin-top: 22px; display: grid; gap: 14px" x-data="{ open: false }">
+        @if (! in_array($collection, ['regalos'], true))
+            <div class="scroll-x">
+                <div class="seg2" role="group" aria-label="Tipo de producto">
+                    <button type="button" wire:click="$set('type', '')" aria-pressed="{{ $type === '' ? 'true' : 'false' }}">Todo<span class="cnt">{{ $this->typeCounts[''] }}</span></button>
+                    @foreach ($this->typeOptions() as $value => $label)
+                        @if (($this->typeCounts[$value] ?? 0) > 0 || $type === $value)
+                            <button type="button" wire:key="type-{{ $value }}" wire:click="$set('type', '{{ $value }}')" aria-pressed="{{ $type === $value ? 'true' : 'false' }}">{{ $label }}<span class="cnt">{{ $this->typeCounts[$value] ?? 0 }}</span></button>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+        @endif
         @if ($this->categories->isNotEmpty())
             <div class="chips-row" role="group" aria-label="Género">
                 <button type="button" class="chip" wire:click="$set('category', '')" aria-pressed="{{ $category === '' ? 'true' : 'false' }}">
@@ -35,6 +48,17 @@
                 <div>
                     <div class="label" style="display: flex; justify-content: space-between">
                         Precio máximo <span class="num" style="color: var(--ink)">S/ {{ $maxPrice ?? $this->priceCeiling }}</span>
+                    </div>
+                    @php
+                        $bins = $this->priceBins;
+                        $top = max(1, ...$bins);
+                        $step = $this->priceCeiling / 6;
+                        $limit = $maxPrice ?? $this->priceCeiling;
+                    @endphp
+                    <div class="hist" aria-hidden="true">
+                        @foreach ($bins as $i => $n)
+                            <i class="{{ $i * $step < $limit ? 'on' : '' }}" style="height: {{ max(9, $n / $top * 100) }}%" title="S/ {{ round($i * $step) }} a {{ round(($i + 1) * $step) }}: {{ $n }}"></i>
+                        @endforeach
                     </div>
                     <label for="max-price" class="sr-only-label">Precio máximo</label>
                     <input id="max-price" type="range" min="5" max="{{ $this->priceCeiling }}" step="5" value="{{ $maxPrice ?? $this->priceCeiling }}"

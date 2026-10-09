@@ -17,6 +17,11 @@ class ProductSeeder extends Seeder
         foreach ($this->products() as $data) {
             $category = Category::where('name', $data['category'])->firstOrFail();
             $book = $data['book'] ?? null;
+            $data['type'] = $book ? 'libro' : match ($data['category']) {
+                'Figuras' => 'figura',
+                'Accesorios' => 'accesorio',
+                default => 'papeleria',
+            };
             unset($data['category'], $data['book']);
 
             $product = Product::updateOrCreate(['sku' => $data['sku']], $data);

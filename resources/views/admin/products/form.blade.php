@@ -27,6 +27,13 @@
                     <input type="text" name="name" value="{{ $v('name', $product->name) }}" required maxlength="255">
                     @error('name')<span class="p-muted" style="color: var(--bad)">{{ $message }}</span>@enderror
                 </label>
+                <label class="p-field">Tipo
+                    <select name="type">
+                        @foreach (\App\Enums\ProductType::cases() as $t)
+                            <option value="{{ $t->value }}" @selected($v('type', $product->type?->value ?? 'libro') === $t->value)>{{ $t->label() }}</option>
+                        @endforeach
+                    </select>
+                </label>
                 <label class="p-field">SKU
                     <input type="text" name="sku" value="{{ $v('sku', $product->sku) }}" required maxlength="64">
                     @error('sku')<span class="p-muted" style="color: var(--bad)">{{ $message }}</span>@enderror

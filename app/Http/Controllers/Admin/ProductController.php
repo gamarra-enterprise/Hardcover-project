@@ -99,6 +99,7 @@ class ProductController extends Controller
     private function save(Product $product, Request $request): Product
     {
         $data = $request->validate([
+            'type' => ['required', Rule::enum(\App\Enums\ProductType::class)],
             'sku' => ['required', 'string', 'max:64', Rule::unique('products', 'sku')->ignore($product->id)],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
@@ -122,7 +123,7 @@ class ProductController extends Controller
         $wasNew = ! $product->exists;
 
         DB::transaction(function () use ($product, $data, $request) {
-            $product->fill(collect($data)->only(['sku', 'name', 'description', 'price', 'sale_price', 'cost_price', 'stock', 'weight_grams'])->all());
+            $product->fill(collect($data)->only(['type', 'sku', 'name', 'description', 'price', 'sale_price', 'cost_price', 'stock', 'weight_grams'])->all());
             // The model settles "active" or "out of stock" from the stock; here we only choose hidden or not.
             $product->status = $request->boolean('hidden') ? ProductStatus::HIDDEN : ProductStatus::ACTIVE;
 
