@@ -235,7 +235,7 @@
 .shop .mosaic { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 30px 24px; align-items: start; }
 .shop .rv .mosaic .pcard:nth-child(odd),
 .shop .rv .mosaic .pcard:nth-child(even) {
-    --mq: clamp(0, calc((var(--sp, 1) - .1 - var(--i, 0) * .02) / .5), 1);
+    --mq: clamp(0, calc((var(--sp, 1) - .1 - var(--r, 0) * .12) / .45), 1);
     opacity: calc(.35 + .65 * var(--mq));
     transform: translateY(calc((1 - var(--mq)) * 26px));
 }

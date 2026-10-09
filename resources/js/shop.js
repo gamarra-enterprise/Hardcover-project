@@ -105,9 +105,20 @@ document.addEventListener('click', (e) => {
             [...el.children].forEach((child, i) => child.style.setProperty('--i', i));
             return { el, cur: 0 };
         });
+        rows();
         loop(true);
     };
 
+    // Covers of the shelf appear row by row: number each cover by the row it sits in.
+    const rows = () => document.querySelectorAll('.mosaic').forEach((grid) => {
+        let row = -1, top = null;
+        [...grid.children].forEach((card) => {
+            if (top === null || Math.abs(card.offsetTop - top) > 4) { row += 1; top = card.offsetTop; }
+            card.style.setProperty('--r', row);
+        });
+    });
+
+    window.addEventListener('resize', rows);
     window.addEventListener('scroll', kick, { passive: true });
     window.addEventListener('resize', kick);
     document.addEventListener('livewire:navigated', scan);
