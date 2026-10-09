@@ -56,7 +56,31 @@
         <section class="p-card">
             <h2>Pagos</h2>
             @forelse ($order->payments as $p)
-                <p style="margin: 0 0 6px">{{ $p->provider }} · {{ Money::format($p->amount) }} · <span class="p-pill">{{ $p->status->value }}</span></p>
+                @php($manual = $p->provider === 'bank_transfer')
+                <div style="margin-bottom: 14px">
+                    <p style="margin: 0 0 6px">{{ $manual ? 'Transferencia' : $p->provider }} · {{ Money::format($p->amount) }} · <span class="p-pill {{ $p->status->value === 'completed' ? 'done' : ($p->status->value === 'failed' ? 'off' : 'warn') }}">{{ $p->status->value }}</span></p>
+                    @if ($manual)
+                        @if (! empty($p->payload['proof']))
+                            <p style="margin: 0 0 6px"><a href="{{ route('admin.payments.proof', $p) }}" target="_blank" rel="noopener">Ver comprobante</a>@if (! empty($p->payload['note'])) · <span class="p-muted">{{ $p->payload['note'] }}</span>@endif</p>
+                        @endif
+                        @if ($p->status === \App\Enums\PaymentStatus::PROCESSING)
+                            <div class="p-tools" style="margin-bottom: 0">
+                                <form method="POST" action="{{ route('admin.payments.confirm', $p) }}" onsubmit="return confirm('¿El dinero ya está en la cuenta? Se confirmará el pedido y se descontará el stock.')">
+                                    @csrf <button class="p-btn p-btn-primary">Confirmar pago</button>
+                                </form>
+                                <form method="POST" action="{{ route('admin.payments.reject', $p) }}" class="p-tools" style="margin-bottom: 0">
+                                    @csrf
+                                    <label class="p-field">Motivo del rechazo<input type="text" name="reason" required maxlength="200"></label>
+                                    <button class="p-btn">Rechazar</button>
+                                </form>
+                            </div>
+                        @elseif ($p->status === \App\Enums\PaymentStatus::COMPLETED && $order->status === \App\Enums\OrderStatus::CANCELLED)
+                            <form method="POST" action="{{ route('admin.payments.refunded', $p) }}" onsubmit="return confirm('¿Ya devolviste el dinero al cliente?')">
+                                @csrf <button class="p-btn">Ya devolví el dinero</button>
+                            </form>
+                        @endif
+                    @endif
+                </div>
             @empty
                 <p class="p-muted">Sin pagos registrados.</p>
             @endforelse

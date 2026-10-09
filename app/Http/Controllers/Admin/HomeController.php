@@ -22,6 +22,7 @@ class HomeController extends Controller
             'toPrepare' => (int) ($counts[OrderStatus::CONFIRMED->value] ?? 0) + (int) ($counts[OrderStatus::PROCESSING->value] ?? 0),
             'toDeliver' => (int) ($counts[OrderStatus::SHIPPED->value] ?? 0),
             'awaitingPayment' => (int) ($counts[OrderStatus::PENDING->value] ?? 0),
+            'proofsToReview' => \App\Models\Payment::where('provider', 'bank_transfer')->where('status', 'processing')->count(),
             'lowStock' => Product::where('stock', '<=', self::LOW_STOCK)->where('status', '!=', 'hidden')->count(),
             'recent' => Order::latest()->limit(5)->get(),
         ]);

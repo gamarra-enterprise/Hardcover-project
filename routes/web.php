@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\HomeController as AdminHomeController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\SalesController;
+use App\Http\Controllers\Admin\TransferReviewController;
 use App\Http\Controllers\Admin\ShippingController as AdminShippingController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\DashboardController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Payments\CardPaymentController;
 use App\Http\Controllers\Payments\FakeGatewayController;
 use App\Http\Controllers\Payments\PayController;
 use App\Http\Controllers\Payments\ReturnController;
+use App\Http\Controllers\Payments\TransferController;
 use App\Http\Controllers\Payments\WebhookController;
 use App\Http\Controllers\ProductController;
 use App\Livewire\Account\Addresses;
@@ -40,6 +42,7 @@ Route::get('seguimiento', TrackOrder::class)->name('orders.track');
 Route::get('pedido/{order:tracking_code}', [OrderController::class, 'show'])->name('orders.show');
 Route::get('pedido/{order:tracking_code}/tarjeta', [CardPaymentController::class, 'show'])->name('orders.card');
 Route::post('pedido/{order:tracking_code}/tarjeta', [CardPaymentController::class, 'store'])->name('orders.card.pay');
+Route::post('pedido/{order:tracking_code}/transferencia', TransferController::class)->middleware('throttle:10,1')->name('orders.transfer');
 Route::post('pedido/{order:tracking_code}/pagar', PayController::class)->name('orders.pay');
 Route::get('pago/retorno/{order:tracking_code}', ReturnController::class)->name('payments.return');
 Route::post('webhooks/mercadopago', WebhookController::class)->middleware('throttle:120,1')->name('payments.webhook');
@@ -77,6 +80,10 @@ Route::view('profile', 'profile')
 // Site management: products, categories, stock and orders. Admin and super admin.
 Route::middleware(['auth', 'verified', 'role:admin', 'two-factor'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', AdminHomeController::class)->name('index');
+    Route::get('pagos/{payment}/comprobante', [TransferReviewController::class, 'proof'])->name('payments.proof');
+    Route::post('pagos/{payment}/confirmar', [TransferReviewController::class, 'confirm'])->name('payments.confirm');
+    Route::post('pagos/{payment}/rechazar', [TransferReviewController::class, 'reject'])->name('payments.reject');
+    Route::post('pagos/{payment}/reembolsado', [TransferReviewController::class, 'refunded'])->name('payments.refunded');
     Route::get('ventas', SalesController::class)->name('sales');
     Route::get('pedidos', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('pedidos/{order}', [AdminOrderController::class, 'show'])->name('orders.show');

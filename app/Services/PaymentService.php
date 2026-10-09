@@ -31,6 +31,9 @@ use Illuminate\Support\Str;
  */
 class PaymentService
 {
+    /** Provider name of payments confirmed by a person (bank transfer). */
+    public const MANUAL_PROVIDER = 'bank_transfer';
+
     private const RETURN_REASON_NO_STOCK = 'Otra persona pagó antes la última unidad disponible de uno de los libros y ya no hay stock.';
 
     public function __construct(
@@ -210,6 +213,12 @@ class PaymentService
             return false;
         }
 
+        // A bank transfer cannot be returned through the gateway: a person sends the money back
+        // and marks it with markRefundedManually(). Until then the refund stays pending.
+        if ($payment->provider === self::MANUAL_PROVIDER) {
+            return false;
+        }
+
         try {
             if (! $this->gateway->refund($payment->external_reference, (string) $payment->amount)) {
                 return false;
@@ -220,6 +229,25 @@ class PaymentService
             return false;
         }
 
+        $this->finishRefund($payment);
+
+        return true;
+    }
+
+    /** Staff sent the money of a bank transfer back to the customer. */
+    public function markRefundedManually(Payment $payment): bool
+    {
+        if ($payment->provider !== self::MANUAL_PROVIDER || $payment->status !== PaymentStatus::COMPLETED) {
+            return false;
+        }
+
+        $this->finishRefund($payment);
+
+        return true;
+    }
+
+    private function finishRefund(Payment $payment): void
+    {
         $order = DB::transaction(function () use ($payment) {
             $payment->update(['status' => PaymentStatus::REFUNDED]);
             $order = Order::lockForUpdate()->findOrFail($payment->order_id);
@@ -235,8 +263,49 @@ class PaymentService
         });
 
         $order?->notifyStatus(OrderStatus::REFUNDED);
+    }
 
-        return true;
+    /**
+     * Staff decide on a bank transfer whose proof the customer uploaded. Approving confirms the order
+     * and takes the stock exactly like an approved gateway payment; rejecting leaves the order pending
+     * so the customer can try again.
+     *
+     * @throws PaymentNotAllowed when the payment is no longer waiting for a decision
+     */
+    public function settleManual(Payment $payment, bool $approved, ?string $reason = null): Payment
+    {
+        /** @var array{notify: list<array{0: OrderStatus, 1: ?string}>, refund: list<Payment>} $after */
+        $after = ['notify' => [], 'refund' => []];
+
+        $payment = DB::transaction(function () use ($payment, $approved, $reason, &$after) {
+            $order = Order::lockForUpdate()->findOrFail($payment->order_id);
+            $payment = Payment::lockForUpdate()->findOrFail($payment->id);
+
+            if ($payment->provider !== self::MANUAL_PROVIDER || $payment->status !== PaymentStatus::PROCESSING) {
+                throw new PaymentNotAllowed('Este pago ya fue revisado.');
+            }
+
+            if (! $approved) {
+                $payment->update(['status' => PaymentStatus::FAILED, 'payload' => [...($payment->payload ?? []), 'rejected_reason' => $reason]]);
+
+                return $payment;
+            }
+
+            $payment->forceFill(['status' => PaymentStatus::COMPLETED, 'paid_at' => now()])->save();
+            $this->confirm($order, $payment, $after);
+
+            return $payment;
+        });
+
+        foreach ($after['notify'] as [$status, $why]) {
+            Order::findOrFail($payment->order_id)->notifyStatus($status, $why);
+        }
+
+        foreach ($after['refund'] as $toRefund) {
+            $this->refundPayment($toRefund);
+        }
+
+        return $payment;
     }
 
     /** Try again the refunds that failed. Returns how many orders ended fully refunded. */
@@ -259,7 +328,7 @@ class PaymentService
     /**
      * @throws PaymentNotAllowed
      */
-    private function assertCanPay(Order $order): void
+    public function assertCanPay(Order $order): void
     {
         if ($order->status !== OrderStatus::PENDING) {
             throw new PaymentNotAllowed('Este pedido ya no está pendiente de pago.');

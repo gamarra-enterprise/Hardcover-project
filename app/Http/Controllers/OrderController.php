@@ -23,6 +23,6 @@ class OrderController extends Controller
 
         $order->load(['items', 'statusHistories', 'payments']);
 
-        return view('orders.show', ['order' => $order, 'canPayWithCard' => $gateway->supportsCards()]);
+        return view('orders.show', ['order' => $order, 'canPayWithCard' => $gateway->supportsCards(), 'transfer' => app(\App\Services\BankTransferService::class)->enabled() ? config('shop.bank_transfer') : null]);
     }
 }

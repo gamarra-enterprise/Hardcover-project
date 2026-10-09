@@ -5,6 +5,7 @@
         <a class="p-stat" href="{{ route('admin.orders.index', ['estado' => 'confirmed']) }}" style="text-decoration: none; color: inherit"><b>{{ $toPrepare }}</b>Por preparar</a>
         <a class="p-stat" href="{{ route('admin.orders.index', ['estado' => 'shipped']) }}" style="text-decoration: none; color: inherit"><b>{{ $toDeliver }}</b>En camino</a>
         <a class="p-stat" href="{{ route('admin.orders.index', ['estado' => 'pending']) }}" style="text-decoration: none; color: inherit"><b>{{ $awaitingPayment }}</b>Esperando pago</a>
+        <div class="p-stat"><b>{{ $proofsToReview }}</b>Comprobantes por revisar</div>
         <div class="p-stat"><b>{{ $lowStock }}</b>Productos con poco stock</div>
     </div>
 

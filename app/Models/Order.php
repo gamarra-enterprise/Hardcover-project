@@ -113,6 +113,12 @@ class Order extends Model
         return URL::temporarySignedRoute('orders.pay', now()->addHours(2), ['order' => $this->tracking_code]);
     }
 
+    /** Where the transfer proof is uploaded. Signed, like the pay button. */
+    public function transferUrl(): string
+    {
+        return URL::temporarySignedRoute('orders.transfer', now()->addHours(2), ['order' => $this->tracking_code]);
+    }
+
     /** The card form of this order. Signed, like the pay button. */
     public function cardUrl(): string
     {

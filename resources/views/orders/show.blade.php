@@ -48,6 +48,29 @@
                             <button type="submit" class="btn {{ $canPayWithCard ? '' : 'btn-primary' }}">Otros medios de pago (Mercado Pago)</button>
                         </form>
                     </div>
+                    @if ($transfer)
+                        <details class="transfer" style="flex-basis: 100%">
+                            <summary><b>Pagar por transferencia bancaria</b></summary>
+                            <dl style="margin: .8rem 0; display: grid; gap: 4px">
+                                @if ($transfer['bank'])<div><dt style="display: inline" class="muted">Banco:</dt> <dd style="display: inline; margin: 0">{{ $transfer['bank'] }}</dd></div>@endif
+                                @if ($transfer['holder'])<div><dt style="display: inline" class="muted">Titular:</dt> <dd style="display: inline; margin: 0">{{ $transfer['holder'] }}</dd></div>@endif
+                                <div><dt style="display: inline" class="muted">Cuenta:</dt> <dd style="display: inline; margin: 0" class="num">{{ $transfer['account'] }}</dd></div>
+                                @if ($transfer['cci'])<div><dt style="display: inline" class="muted">CCI:</dt> <dd style="display: inline; margin: 0" class="num">{{ $transfer['cci'] }}</dd></div>@endif
+                                <div><dt style="display: inline" class="muted">Monto exacto:</dt> <dd style="display: inline; margin: 0" class="num"><b>{{ Money::format($order->total) }}</b></dd></div>
+                            </dl>
+                            <p class="muted" style="font-size: 13px">Escribe el código {{ $order->tracking_code }} en la referencia y sube la captura o el PDF del comprobante.</p>
+                            <form method="post" action="{{ $order->transferUrl() }}" enctype="multipart/form-data" style="display: grid; gap: 10px; max-width: 420px">
+                                @csrf
+                                <label class="field-label" for="proof">Comprobante (imagen o PDF, hasta 5 MB)</label>
+                                <input id="proof" type="file" name="proof" accept="image/*,application/pdf" required aria-describedby="proof-error">
+                                @error('proof')<p id="proof-error" class="field-error" role="alert">{{ $message }}</p>@enderror
+                                <button type="submit" class="btn">Enviar comprobante</button>
+                            </form>
+                        </details>
+                    @endif
+                    @if ($rejected = $order->payments->where('provider', 'bank_transfer')->where('status', \App\Enums\PaymentStatus::FAILED)->last())
+                        <small class="field-error" style="flex-basis: 100%" role="status">Tu comprobante anterior fue rechazado{{ ! empty($rejected->payload['rejected_reason']) ? ': '.$rejected->payload['rejected_reason'] : '' }}. Puedes enviar otro.</small>
+                    @endif
                     @if (config('shop.payment_gateway') === 'fake')
                         <small class="muted" style="flex-basis: 100%">Modo de prueba: los pagos no son reales.</small>
                     @endif

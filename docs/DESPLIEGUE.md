@@ -15,6 +15,7 @@ Lo que hay que hacer antes de abrir la tienda. Marca cada punto al terminarlo.
 - [ ] Correo: `MAIL_MAILER=smtp` con el servidor real, `MAIL_FROM_ADDRESS` y `MAIL_FROM_NAME` del negocio. Con `log` los correos no salen.
 - [ ] `SESSION_SECURE_COOKIE=true`; `LOG_LEVEL=warning`.
 - [ ] Pagos: `PAYMENT_GATEWAY=mercadopago`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_PUBLIC_KEY`, `MERCADOPAGO_WEBHOOK_SECRET`. La pasarela `fake` se rechaza en producción.
+- [ ] Transferencia: `SHOP_BANK_NAME`, `SHOP_BANK_HOLDER`, `SHOP_BANK_ACCOUNT` y `SHOP_BANK_CCI` con la cuenta real del negocio (sin cuenta, la opción no aparece). Los comprobantes quedan en `storage/app/private/transfer-proofs`: incluirlos en los respaldos de archivos.
 - [ ] En Mercado Pago, registrar la dirección del webhook que muestra `/super/pasarelas` y hacer una compra de prueba con reembolso (lista en «Conectar Mercado Pago de verdad»).
 
 ## Primer arranque
