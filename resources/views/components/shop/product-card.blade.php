@@ -13,7 +13,7 @@
         @elseif ($discount)
             <span class="badge">-{{ $discount }}%</span>
         @endif
-        <a href="{{ route('products.show', $product) }}" tabindex="-1" aria-hidden="true"><x-shop.cover :product="$product" /></a>
+        <div class="cover-stage"><a href="{{ route('products.show', $product) }}" tabindex="-1" aria-hidden="true" style="display: contents"><x-shop.cover :product="$product" /></a></div>
         <button type="button" class="qv-hint" x-data x-on:click="$dispatch('quick-view', { id: {{ $product->id }} })" aria-label="Vista rápida: {{ $product->name }}">Vista rápida</button>
     </div>
     <a href="{{ route('products.show', $product) }}" style="display: flex; flex-direction: column; gap: .55rem; text-decoration: none">

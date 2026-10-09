@@ -108,6 +108,7 @@ Route::middleware(['auth', 'verified', 'role:admin', 'two-factor'])->prefix('adm
     Route::put('envios/zonas/{zone}', [AdminShippingController::class, 'updateZone'])->name('shipping.zones.update');
     Route::post('envios/zonas/{zone}/distritos', [AdminShippingController::class, 'storeDistrict'])->name('shipping.districts.store');
     Route::put('envios/distritos/{district}', [AdminShippingController::class, 'updateDistrict'])->name('shipping.districts.update');
+    Route::patch('categorias/{category}/destacada', [AdminCategoryController::class, 'toggleFeatured'])->name('categories.featured');
     Route::resource('categorias', AdminCategoryController::class)->parameters(['categorias' => 'category'])->names('categories')->except(['show']);
 });
 

@@ -14,6 +14,9 @@
         <label style="display: block; margin: 12px 0">
             <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $category->is_active))> Activa (visible en la tienda)
         </label>
+        <label style="display: block; margin: 0 0 12px">
+            <input type="checkbox" name="featured" value="1" @checked(old('featured', $category->featured)) > Principal (se muestra como filtro y en el menú; si no, va en «Más géneros»)
+        </label>
         <button class="p-btn p-btn-primary">Guardar</button>
     </form>
 </x-panel-layout>

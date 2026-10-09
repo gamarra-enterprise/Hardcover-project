@@ -3,7 +3,7 @@
     <h1 id="listing-top" style="scroll-margin-top: 130px; font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -.035em; margin-top: .3rem">{{ $this->heading() }}</h1>
     @if ($this->subheading())<p class="muted" style="margin-top: .3rem">{{ $this->subheading() }}</p>@endif
 
-    <div style="margin-top: 22px; display: grid; gap: 14px" x-data="{ open: false }">
+    <div style="margin-top: 22px; display: grid; gap: 14px" x-data="{ open: false, more: false }">
         @if (! in_array($collection, ['regalos'], true))
             <x-shop.scroller class="seg-track" label="tipos de producto">
                 <div class="seg2" role="group" aria-label="Tipo de producto">
@@ -17,16 +17,37 @@
             </x-shop.scroller>
         @endif
         @if ($this->categories->isNotEmpty())
+            @php
+                $main = $this->categories->where('featured', true);
+                // With nothing marked as main, everything is shown as a chip.
+                $rest = $main->isEmpty() ? collect() : $this->categories->where('featured', false);
+                $main = $main->isEmpty() ? $this->categories : $main;
+                $activeInRest = $rest->firstWhere('slug', $category);
+            @endphp
             <x-shop.scroller class="chips-row" label="géneros" role="group" aria-label="Género">
                 <button type="button" class="chip" wire:click="$set('category', '')" aria-pressed="{{ $category === '' ? 'true' : 'false' }}">
                     Todos<span class="cnt">{{ $this->total }}</span>
                 </button>
-                @foreach ($this->categories as $item)
+                @foreach ($main as $item)
                     <button type="button" class="chip" wire:key="cat-{{ $item->id }}" wire:click="$set('category', '{{ $item->slug }}')" aria-pressed="{{ $category === $item->slug ? 'true' : 'false' }}">
                         {{ $item->name }}<span class="cnt">{{ $item->visible_count }}</span>
                     </button>
                 @endforeach
+                @if ($rest->isNotEmpty())
+                    <button type="button" class="chip" x-on:click="more = !more" x-bind:aria-expanded="more.toString()" aria-pressed="{{ $activeInRest ? 'true' : 'false' }}">
+                        {{ $activeInRest ? $activeInRest->name : 'Más géneros' }}<span class="cnt">{{ $rest->count() }}</span> <span x-text="more ? '▴' : '▾'">▾</span>
+                    </button>
+                @endif
             </x-shop.scroller>
+            @if ($rest->isNotEmpty())
+                <div class="more-genres" x-show="more" x-cloak x-transition>
+                    @foreach ($rest as $item)
+                        <button type="button" class="chip" wire:key="cat-{{ $item->id }}" wire:click="$set('category', '{{ $item->slug }}')" x-on:click="more = false" aria-pressed="{{ $category === $item->slug ? 'true' : 'false' }}">
+                            {{ $item->name }}<span class="cnt">{{ $item->visible_count }}</span>
+                        </button>
+                    @endforeach
+                </div>
+            @endif
         @endif
 
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap">

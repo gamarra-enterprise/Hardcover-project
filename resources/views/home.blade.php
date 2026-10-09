@@ -176,7 +176,7 @@
                 @foreach ($shelfBooks as $book)
                     <div class="pcard">
                         <div style="position: relative">
-                            <a href="{{ route('products.show', $book) }}" aria-label="{{ $book->name }}"><x-shop.cover :product="$book" /></a>
+                            <div class="cover-stage"><a href="{{ route('products.show', $book) }}" aria-label="{{ $book->name }}" style="display: contents"><x-shop.cover :product="$book" /></a></div>
                             <button type="button" class="qv-hint" x-data x-on:click="$dispatch('quick-view', { id: {{ $book->id }} })" aria-label="Vista rápida: {{ $book->name }}">Vista rápida</button>
                         </div>
                     </div>

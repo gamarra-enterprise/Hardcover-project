@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['parent_id', 'name', 'slug', 'description', 'position', 'is_active'])]
+#[Fillable(['parent_id', 'name', 'slug', 'description', 'position', 'is_active', 'featured'])]
 class Category extends Model
 {
     use HasFactory;
@@ -19,7 +19,7 @@ class Category extends Model
      */
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'featured' => 'boolean'];
     }
 
     public function parent(): BelongsTo

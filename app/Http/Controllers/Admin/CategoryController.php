@@ -8,6 +8,7 @@ use App\Models\Category;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
@@ -57,6 +58,19 @@ class CategoryController extends Controller
         return redirect()->route('admin.categories.index')->with('notice', 'Cambios guardados.');
     }
 
+    /** Show the category among the main filters and in the menu, or move it under "Más géneros". */
+    public function toggleFeatured(Category $category): RedirectResponse
+    {
+        Gate::authorize('update', $category);
+
+        $category->update(['featured' => ! $category->featured]);
+        Cache::forget('menu-genres-8');
+        Cache::forget('menu-genres-7');
+        ActivityLog::record('category.featured_changed', $category->name.($category->featured ? ': ahora entre los filtros principales' : ': pasó a «Más géneros»'));
+
+        return back()->with('notice', $category->featured ? "«{$category->name}» se muestra entre los filtros principales." : "«{$category->name}» pasó a «Más géneros».");
+    }
+
     public function destroy(Category $category): RedirectResponse
     {
         Gate::authorize('delete', $category);
@@ -79,6 +93,7 @@ class CategoryController extends Controller
             'description' => ['nullable', 'string', 'max:500'],
         ]);
         $data['is_active'] = $request->boolean('is_active');
+        $data['featured'] = $request->boolean('featured');
 
         return $data;
     }

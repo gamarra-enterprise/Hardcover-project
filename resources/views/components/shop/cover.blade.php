@@ -1,7 +1,7 @@
 @props(['product'])
 
 {{-- Real cover when the product has an image, typographic placeholder otherwise. --}}
-<div class="cw">
+<div class="cw" style="--r: {{ $product->coverRatio() }}">
     <div class="cover {{ $product->imageUrl() ? '' : 'cover-ph' }}">
         @if ($product->imageUrl())
             <img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" loading="lazy">

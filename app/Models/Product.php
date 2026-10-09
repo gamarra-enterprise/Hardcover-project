@@ -63,6 +63,16 @@ class Product extends Model
         $query->whereRaw(self::SOLD_UNITS_SQL.' > 0')->orderByRaw(self::SOLD_UNITS_SQL.' desc');
     }
 
+    /** Width over height of the cover, kept within sane limits so a very wide or very tall book cannot break the grid. */
+    public function coverRatio(): float
+    {
+        if (! $this->width_mm || ! $this->height_mm) {
+            return 2 / 3;
+        }
+
+        return round(max(0.55, min(1.3, $this->width_mm / $this->height_mm)), 3);
+    }
+
     public function isVisible(): bool
     {
         return $this->status->isVisible();

@@ -16,6 +16,7 @@ class MenuGenres
             ->withCount(['products as shown_count' => fn ($q) => $q->visible()])
             ->get()
             ->filter(fn (Category $c) => $c->shown_count > 0)
+            ->pipe(fn ($all) => $all->where('featured', true)->isNotEmpty() ? $all->where('featured', true) : $all)
             ->sortByDesc('shown_count')
             ->take($limit)
             ->map(fn (Category $c) => ['name' => $c->name, 'slug' => $c->slug, 'count' => $c->shown_count])

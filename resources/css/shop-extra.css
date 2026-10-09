@@ -239,3 +239,9 @@
     opacity: calc(.35 + .65 * var(--mq));
     transform: translateY(calc((1 - var(--mq)) * 26px));
 }
+
+/* Covers keep the real proportion of each book. In listings they stand on a common baseline inside a stage of fixed height. */
+.shop .cw .cover { aspect-ratio: var(--r, .6667); }
+.shop .cover-stage { aspect-ratio: 4 / 5; display: flex; align-items: flex-end; justify-content: center; }
+.shop .cover-stage .cw { width: min(100%, calc(var(--r, .6667) / .8 * 100%)); }
+.shop .more-genres { display: flex; flex-wrap: wrap; gap: .5rem; padding: 14px; background: var(--surface); border-radius: 18px; }
