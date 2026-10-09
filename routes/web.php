@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('pedidos', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('pedidos/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('pedidos/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
+    Route::get('productos/exportar', [AdminProductController::class, 'export'])->name('products.export');
     Route::resource('productos', AdminProductController::class)->parameters(['productos' => 'product'])->names('products')->except(['show', 'destroy']);
     Route::get('envios', [AdminShippingController::class, 'index'])->name('shipping.index');
     Route::put('envios/zonas/{zone}', [AdminShippingController::class, 'updateZone'])->name('shipping.zones.update');

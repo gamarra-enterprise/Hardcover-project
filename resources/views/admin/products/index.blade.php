@@ -23,6 +23,7 @@
             <a class="p-btn" href="{{ route('admin.products.index') }}">Limpiar</a>
         @endif
         <a class="p-btn" href="{{ route('admin.products.create') }}" style="margin-left: auto">Nuevo producto</a>
+        <a class="p-btn" href="{{ route('admin.products.export') }}">Exportar catálogo (CSV)</a>
     </form>
 
     <div class="p-table-wrap">

@@ -97,7 +97,9 @@ class ProductImporter
     private function save(array $row, array $filterGenres, ?string $coversDir, bool $dryRun, array &$result): void
     {
         $sku = 'HB-'.$row['isbn'];
-        $product = Product::firstOrNew(['sku' => $sku]);
+        // A product made by hand can have any SKU, so it is found by its ISBN first.
+        $product = Product::whereHas('bookDetail', fn ($q) => $q->where('isbn_13', $row['isbn'])->orWhere('isbn_10', $row['isbn']))->first()
+            ?? Product::firstOrNew(['sku' => $sku]);
         $isNew = ! $product->exists;
 
         $product->fill([

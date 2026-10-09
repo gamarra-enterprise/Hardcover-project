@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BookDetail;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\CatalogExporter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Validation\Rule;
 
 /**
@@ -42,6 +44,19 @@ class ProductController extends Controller
             ->withQueryString();
 
         return view('admin.products.index', ['products' => $products, 'search' => $search, 'status' => $status]);
+    }
+
+    /** Backup of the catalog, in the same format the importer reads. */
+    public function export(CatalogExporter $exporter): StreamedResponse
+    {
+        Gate::authorize('viewAny', Product::class);
+        abort_unless(auth()->user()->isStaff(), 403);
+
+        return response()->streamDownload(
+            fn () => $exporter->write(fopen('php://output', 'w')),
+            'catalogo-'.now()->format('Y-m-d').'.csv',
+            ['Content-Type' => 'text/csv; charset=UTF-8'],
+        );
     }
 
     public function create(): View
