@@ -7,7 +7,7 @@
     <form class="cart-layout" wire:submit="place" novalidate>
         <div style="display: grid; gap: 28px">
             <section class="card" style="padding: 22px; display: grid; gap: 14px" aria-labelledby="contact-title">
-                <h2 id="contact-title" style="font-size: 1.3rem; font-weight: 700">1. Tus datos</h2>
+                <h2 id="contact-title" style="font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 12px"><span class="cs-n ok" aria-hidden="true">1</span>Tus datos</h2>
 
                 <div class="field">
                     <label for="name">Nombre de quien recibe</label>
@@ -30,7 +30,7 @@
             </section>
 
             <section class="card" style="padding: 22px; display: grid; gap: 14px" aria-labelledby="delivery-title">
-                <h2 id="delivery-title" style="font-size: 1.3rem; font-weight: 700">2. Entrega</h2>
+                <h2 id="delivery-title" style="font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 12px"><span class="cs-n ok" aria-hidden="true">2</span>Entrega</h2>
 
                 <div class="field">
                     <label for="ubigeo">Distrito</label>

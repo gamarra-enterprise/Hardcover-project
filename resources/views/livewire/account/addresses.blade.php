@@ -1,6 +1,7 @@
 <div class="wrap" style="padding-block: 28px 48px">
     <nav class="muted" style="font-size: 13px" aria-label="Ruta"><a href="{{ route('account.orders') }}">Mi cuenta</a> / Direcciones</nav>
     <h1 style="font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 800; letter-spacing: -.035em">Mis direcciones</h1>
+    <x-shop.account-tabs active="addresses" />
 
     @if ($this->addresses->isEmpty() && ! $showForm)
         <p class="muted" style="margin-top: 1rem">Todavía no guardaste ninguna dirección.</p>

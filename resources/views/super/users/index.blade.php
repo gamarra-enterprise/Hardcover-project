@@ -56,4 +56,18 @@
         </table>
     </div>
     <div style="margin-top: 16px">{{ $users->links() }}</div>
+
+    <section class="p-card" style="margin-top: 18px">
+        <h2>Qué puede hacer cada rol</h2>
+        <div class="p-table-wrap" style="border: 0">
+            <table class="p-table">
+                <thead><tr><th>Acción</th><th>Cliente</th><th>Administrador</th><th>Super admin</th></tr></thead>
+                <tbody>
+                    @foreach ([['Comprar, ver sus pedidos y direcciones', 1, 1, 1], ['Ver pedidos, cambiar su estado y confirmar transferencias', 0, 1, 1], ['Crear y editar productos, categorías, stock y envíos', 0, 1, 1], ['Ver ventas y exportar el catálogo y el Club', 0, 1, 1], ['Gestionar usuarios y roles', 0, 0, 1], ['Ver pasarelas, respaldos y la actividad', 0, 0, 1]] as [$action, $c, $a, $s])
+                        <tr><td>{{ $action }}</td>@foreach ([$c, $a, $s] as $yes)<td>{!! $yes ? '<b style="color: var(--ok)">Sí</b>' : '<span class="p-muted">No</span>' !!}</td>@endforeach</tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </section>
 </x-panel-layout>
