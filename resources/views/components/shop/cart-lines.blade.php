@@ -26,11 +26,11 @@
 
                 <div class="cart-actions">
                     <div class="qty" role="group" aria-label="Cantidad de {{ $line->product->name }}">
-                        <button type="button" wire:click="changeBy({{ $line->item->id }}, -1)" aria-label="Menos">−</button>
+                        <button type="button" wire:click="changeBy({{ $line->item->id }}, -1)" aria-label="Quitar una unidad de {{ $line->product->name }}">−</button>
                         <span class="num">{{ $line->quantity }}</span>
-                        <button type="button" wire:click="changeBy({{ $line->item->id }}, 1)" aria-label="Más" @disabled($line->available <= $line->quantity)>+</button>
+                        <button type="button" wire:click="changeBy({{ $line->item->id }}, 1)" aria-label="Añadir una unidad de {{ $line->product->name }}" @disabled($line->available <= $line->quantity)>+</button>
                     </div>
-                    <button type="button" class="tlink" wire:click="remove({{ $line->item->id }})">Quitar</button>
+                    <button type="button" class="tlink" wire:click="remove({{ $line->item->id }})" aria-label="Quitar {{ $line->product->name }} del carrito">Quitar</button>
                 </div>
             </div>
 

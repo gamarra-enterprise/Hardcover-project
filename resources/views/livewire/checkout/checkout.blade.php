@@ -11,20 +11,20 @@
 
                 <div class="field">
                     <label for="name">Nombre de quien recibe</label>
-                    <input id="name" class="input" type="text" wire:model.blur="name" autocomplete="name" required>
-                    @error('name') <p class="field-error" role="alert">{{ $message }}</p> @enderror
+                    <input id="name" aria-invalid="{{ $errors->has('name') ? 'true' : 'false' }}" aria-describedby="name-error" class="input" type="text" wire:model.blur="name" autocomplete="name" required>
+                    @error('name') <p class="field-error" id="name-error" role="alert">{{ $message }}</p> @enderror
                 </div>
                 <div class="field-row">
                     <div class="field">
                         <label for="email">Correo electrónico</label>
-                        <input id="email" class="input" type="email" wire:model.blur="email" autocomplete="email" required>
+                        <input id="email" aria-invalid="{{ $errors->has('email') ? 'true' : 'false' }}" aria-describedby="email-error" class="input" type="email" wire:model.blur="email" autocomplete="email" required>
                         <p class="muted" style="font-size: 12.5px">Aquí te avisamos de cada cambio de tu pedido.</p>
-                        @error('email') <p class="field-error" role="alert">{{ $message }}</p> @enderror
+                        @error('email') <p class="field-error" id="email-error" role="alert">{{ $message }}</p> @enderror
                     </div>
                     <div class="field">
                         <label for="phone">Celular</label>
-                        <input id="phone" class="input" type="tel" wire:model.blur="phone" autocomplete="tel-national" inputmode="numeric" placeholder="987 654 321" required>
-                        @error('phone') <p class="field-error" role="alert">{{ $message }}</p> @enderror
+                        <input id="phone" aria-invalid="{{ $errors->has('phone') ? 'true' : 'false' }}" aria-describedby="phone-error" class="input" type="tel" wire:model.blur="phone" autocomplete="tel-national" inputmode="numeric" placeholder="987 654 321" required>
+                        @error('phone') <p class="field-error" id="phone-error" role="alert">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </section>
@@ -34,7 +34,7 @@
 
                 <div class="field">
                     <label for="ubigeo">Distrito</label>
-                    <select id="ubigeo" class="select" style="border-radius: 14px; width: 100%" wire:model.live="ubigeo" required>
+                    <select id="ubigeo" aria-invalid="{{ $errors->has('ubigeo') ? 'true' : 'false' }}" aria-describedby="ubigeo-error" class="select" style="border-radius: 14px; width: 100%" wire:model.live="ubigeo" required>
                         <option value="">Elige tu distrito</option>
                         @foreach ($this->zones as $zone)
                             <optgroup label="{{ $zone->name }}">
@@ -50,12 +50,12 @@
                         </optgroup>
                     </select>
                     <p class="muted" style="font-size: 12.5px">Por ahora enviamos solo a Lima. Los envíos a otras regiones llegarán pronto.</p>
-                    @error('ubigeo') <p class="field-error" role="alert">{{ $message }}</p> @enderror
+                    @error('ubigeo') <p class="field-error" id="ubigeo-error" role="alert">{{ $message }}</p> @enderror
                 </div>
                 <div class="field">
                     <label for="line1">Dirección</label>
-                    <input id="line1" class="input" type="text" wire:model.blur="line1" autocomplete="address-line1" placeholder="Calle, número, departamento" required>
-                    @error('line1') <p class="field-error" role="alert">{{ $message }}</p> @enderror
+                    <input id="line1" aria-invalid="{{ $errors->has('line1') ? 'true' : 'false' }}" aria-describedby="line1-error" class="input" type="text" wire:model.blur="line1" autocomplete="address-line1" placeholder="Calle, número, departamento" required>
+                    @error('line1') <p class="field-error" id="line1-error" role="alert">{{ $message }}</p> @enderror
                 </div>
                 <div class="field">
                     <label for="line2">Referencia <span class="muted">(opcional)</span></label>

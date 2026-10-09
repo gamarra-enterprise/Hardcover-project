@@ -255,7 +255,7 @@ body.shop {
 .shop .field label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
 .shop .field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; align-items: start; }
 .shop .card { border: 1px solid var(--line); border-radius: 16px; background: var(--bg); }
-.shop .field-error { color: var(--bad); font-size: 13px; font-weight: 600; }
+.shop .field-error { color: var(--bad); font-size: 13px; font-weight: 600; list-style: none; padding: 0; margin: 4px 0 0; }
 .shop .input[aria-invalid='true'] { border-color: var(--bad); }
 .shop .mini-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
 .shop .mini-lines li { display: flex; justify-content: space-between; gap: 1rem; }
@@ -288,7 +288,6 @@ body.shop {
 
 /* Forms shared by the sign-in, registration and profile screens. */
 .shop .field-label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-.shop .field-error { list-style: none; padding: 0; margin: 4px 0 0; font-size: 13px; color: var(--bad); }
 .shop .auth-card { max-width: 440px; margin: 40px auto 64px; padding: 28px; }
 .shop .auth-card h1 { font-family: var(--f-display); font-size: 1.7rem; font-weight: 800; letter-spacing: -.03em; margin: 0 0 18px; }
 .shop .auth-card a { color: var(--accent-deep); }

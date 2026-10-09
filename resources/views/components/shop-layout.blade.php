@@ -59,7 +59,7 @@
 
         {{ $slot }}
 
-        <div x-data="{ open: false }" x-on:cart-open.window="open = true" x-on:keydown.escape.window="open = false">
+        <div x-data="{ open: false }" x-effect="if (open) $nextTick(() => $el.querySelector('.drawer button')?.focus())" x-on:cart-open.window="open = true" x-on:keydown.escape.window="open = false">
             <div class="drawer-ov" x-show="open" x-cloak x-transition.opacity x-on:click="open = false"></div>
             <aside class="drawer" role="dialog" aria-modal="true" aria-label="Carrito" x-show="open" x-cloak
                    x-transition:enter="drawer-enter" x-transition:enter-start="drawer-from" x-transition:leave="drawer-enter" x-transition:leave-end="drawer-from"
